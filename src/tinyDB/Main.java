@@ -1,7 +1,9 @@
 package tinyDB;
+import java.util.ArrayList;
+import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
     	// Get DBManager
     	DBManager dbm = DBManager.getDBManager();
     	
@@ -14,11 +16,15 @@ public class Main {
     	
     	// Create table
     	Table newTable = dbm.createTable("test-table3", 1);
+    	//// Read .script file
+    	//ArrayList<String> tmp = newTable.store.readTableDataDisk();
+    	//tmp.forEach(line -> System.out.println(line));
+    	//// Write to .script file
+    	//newTable.store.writeTableDataDisk(tmp);
     	
     	// Delete table
     	dbm.deleteTable("test-table1");
     	dbm.deleteTable("test-table2");
-    	System.out.println("After delete tables: " + dbm.getTableList().size());
     	
     	// Switch from d1 to db2
     	dbm.setDatabase(db2);
