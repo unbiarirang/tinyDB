@@ -5,6 +5,7 @@ import tinyDB.DataFile.FileManager;
 import tinyDB.DataFile.Page;
 import tinyDB.Record.*;
 import tinyDB.Table;
+import tinyDB.index.*;
 
 import static tinyDB.DataFile.Page.BLOCK_SIZE;
 import static tinyDB.DataFile.Page.INT_SIZE;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.rmi.registry.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,6 +79,19 @@ public class Main {
 				}
 				RF.write();
 			}
+		}
+	}
+	public static void createIndex(int datalen, RecordFile RF, String attr) throws IOException {
+		BplusTree tree = new BplusTree(BLOCK_SIZE/datalen + 1);
+		int pos[] = new int[2];
+		ArrayList<int[]> values = new ArrayList<int[]>();
+		values.add(pos);
+		RF.beforeFirst();
+		while(RF.next()) {
+			Comparable key = RF.getString(attr);
+			pos[0] = RF.getCurBlkNum();
+			pos[1] = RF.getRp().currentId();
+			tree.insert(key, values);
 		}
 	}
 }

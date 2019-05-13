@@ -18,7 +18,6 @@ public class FileManager{
         if (isNew && !dbDirectory.mkdir())
             throw new RuntimeException("cannot create " + dbname);
  
-
         for (String filename : dbDirectory.list())
             if (filename.startsWith("temp"))
             new File(dbDirectory, filename).delete();

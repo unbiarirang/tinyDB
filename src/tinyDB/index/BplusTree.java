@@ -73,7 +73,7 @@ public class BplusTree implements B, Serializable {
 		}
 	}
 
-	public BplusTree(int degree,int columnum,String[] column) {
+	public BplusTree(int degree) {
 		if (degree < 3) {
 			System.out.print("Degree must be greater than 2");
 			System.exit(0);

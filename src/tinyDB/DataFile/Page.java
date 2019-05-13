@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 
 public class Page {
 
-   public static final int BLOCK_SIZE = 50;
+   public static final int BLOCK_SIZE = 400;
    
    public static final int INT_SIZE = Integer.SIZE / Byte.SIZE;
    public static final int LONG_SIZE = Long.SIZE / Byte.SIZE;

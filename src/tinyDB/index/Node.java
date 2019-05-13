@@ -19,7 +19,6 @@ public class Node implements Serializable {
 
 	protected boolean isLeaf;
 	protected boolean isRoot;
-	protected boolean isChanged;
 	protected Node parent;
 	protected Node previous;
 	protected Node next;
@@ -202,7 +201,6 @@ public class Node implements Serializable {
 	protected void updateInsert(BplusTree tree) {
 		validate(this, tree);// 如果子节点数超出阶数,则需要分裂该节点
 		if (children.size() > tree.getDegree()) {
-			// 分裂成左右两个节点
 			Node left = new Node(false,tree);
 			Node right = new Node(false,tree);
 			// 左右两个节点关键字长度
@@ -487,8 +485,9 @@ public class Node implements Serializable {
 		for (int i = 0; i < entries.size(); i++) {
 			// 如果该关键字键值已存在,则更新
 			if ( advancedCompare(entries.get(i).getKey(), key) == 0) {
-				entries.get(i).setValue(obj);
-//				System.out.print(entries.get(i).getValue());
+				ArrayList<int[]> origin = (ArrayList<int[]>) entries.get(i).getValue();
+				ArrayList<int[]> newone = (ArrayList<int[]>) obj;
+				origin.add(newone.get(0));
 				return;
 				// 否则插入
 			} else if (advancedCompare(entries.get(i).getKey(), key) > 0) {
