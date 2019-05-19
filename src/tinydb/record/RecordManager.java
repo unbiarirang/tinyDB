@@ -92,6 +92,7 @@ public class RecordManager {
 
 	// Stop write to the block.
 	public void close() {
+		rc.write();
 		rc.close();
 	}
 
@@ -127,7 +128,7 @@ public class RecordManager {
 			}
 		} else {
 			while (next()) {
-				if (rc.getString(fldname) == ((String) value).toString())
+				if (rc.getString(fldname).contentEquals(((String) value).toString()))
 					delete();
 			}
 		}

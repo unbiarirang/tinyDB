@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import tinydb.file.*;
+import tinydb.consts.*;
 
 // Record in a block
+// Manage the placement and access of records in a block.
 public class Record {
 	public static final int INUSE = 1;
 
@@ -31,8 +33,8 @@ public class Record {
 	}
 
 	/**
-	 * flags(32bit): first 31 bits represent null value of each fields, 1 means the
-	 * field is null. 
+	 * flags(32bit): first 31 bits represent null value of each fields,.
+	 * 1 means the field is null. 
 	 *   0      1            30      31
 	 *   -----------------------------------
 	 *  | fld1 | fld2 | ... | fld31 | INUSE | 
@@ -172,7 +174,7 @@ public class Record {
 	// Print all attributes of a record.
 	public void print() {
 		ArrayList<String> fldnames = tb.fldnames();
-		HashMap<String, String> fldtypes = tb.fldtypes();
+		HashMap<String, Integer> fldtypes = tb.fldtypes();
 		Iterator<String> it = fldnames.iterator();
 
 		while (it.hasNext()) {
@@ -180,13 +182,13 @@ public class Record {
 
 			if (getFlag(fldIndexToFlag(fldnames.indexOf(fldname)))) // null
 				System.out.print("null\t");
-			else if (fldtypes.get(fldname).equals("Int"))
+			else if (fldtypes.get(fldname).equals(Types.INTEGER))
 				System.out.print(getInt(fldname) + "\t");
-			else if (fldtypes.get(fldname).equals("Long"))
+			else if (fldtypes.get(fldname).equals(Types.LONG))
 				System.out.print(getLong(fldname) + "\t");
-			else if (fldtypes.get(fldname).equals("Float"))
+			else if (fldtypes.get(fldname).equals(Types.FLOAT))
 				System.out.print(getFloat(fldname) + "\t");
-			else if (fldtypes.get(fldname).equals("Double"))
+			else if (fldtypes.get(fldname).equals(Types.DOUBLE))
 				System.out.print(getDouble(fldname) + "\t");
 			else
 				System.out.print(getString(fldname) + "\t");

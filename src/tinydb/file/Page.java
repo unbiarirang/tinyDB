@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 
 import tinydb.server.DBManager;
 
+// The contents of a disk block in memory. (in memory Block)
 public class Page {
 	// The number of bytes in a block. 
 	public static final int BLOCK_SIZE = 1024;

@@ -3,34 +3,76 @@ package tinydb.record;
 
 import java.util.*;
 
+import tinydb.consts.Types;
+import tinydb.record.Schema;
 import tinydb.server.DBManager;
+import static tinydb.file.Page.*;
 
 public class Table {
 	private String tblname;
+	private Schema schema;
 	private ArrayList<String> fldnames;
-	private HashMap<String, String> fldtypes;
+	private HashMap<String, Integer> fldtypes;
 	private HashMap<String, Integer> fldsizes;
 	private HashMap<String, Integer> offsets;
+	private String pk;
 	private int recordlen;
 
 	public Table(String tblname) {
 		this.tblname = tblname;
+		this.schema = new Schema();
 		this.fldnames = new ArrayList<String>();
-		this.fldtypes = new HashMap<String, String>();
+		this.fldtypes = new HashMap<String, Integer>();
 		this.fldsizes = new HashMap<String, Integer>();
 		this.offsets = new HashMap<String, Integer>();
 		this.recordlen = 0;
+		this.pk = null;
 	}
 
-	public Table(String tblname, ArrayList<String> fldnames, HashMap<String, String> fldtypes,
-			HashMap<String, Integer> fldsizes) {
+	public Table(String tblname, Schema schema) {
 		this.tblname = tblname;
-		this.fldnames = fldnames;
-		this.fldtypes = fldtypes;
-		this.fldsizes = fldsizes;
+		this.schema = schema;
+		initFields();
 		initOffset();
 	}
 	
+	public Table(String tblname, Schema schema, String pk) {
+		this.tblname = tblname;
+		this.schema = schema;
+		initFields();
+		initOffset();
+		this.pk = pk;
+	}
+	
+	private void initFields() {
+		// init fldnames
+		this.fldnames = new ArrayList<String> (schema.fields());
+		
+		// init fldtypes
+		this.fldtypes = new HashMap<String, Integer>();
+		Iterator<String> it1 = fldnames.iterator();
+		Iterator<Integer> it2 = schema.types().iterator();
+		while (it1.hasNext() && it2.hasNext()) {
+			this.fldtypes.put(it1.next(), it2.next());
+		}
+		
+		// init fldsizes
+		this.fldsizes = new HashMap<String, Integer>();
+		for (String fldname : fldnames) {
+			int type = fldtypes.get(fldname);
+			if (type == Types.INTEGER)
+				this.fldsizes.put(fldname, INT_SIZE);
+			else if (type == Types.LONG)
+				this.fldsizes.put(fldname, LONG_SIZE);
+			else if (type == Types.FLOAT)
+				this.fldsizes.put(fldname, FLOAT_SIZE);
+			else if (type == Types.DOUBLE)
+				this.fldsizes.put(fldname, DOUBLE_SIZE);
+			else
+				this.fldsizes.put(fldname, STR_SIZE(schema.getField(fldname).length));
+		}
+	}
+
 	private void initOffset() {
 		this.offsets = new HashMap<String, Integer>();
 		this.recordlen = addFields();
@@ -55,7 +97,7 @@ public class Table {
 		return fldnames;
 	}
 	
-	public HashMap<String, String> fldtypes() {
+	public HashMap<String, Integer> fldtypes() {
 		return fldtypes;
 	}
 	
@@ -74,5 +116,10 @@ public class Table {
 
 	public int size(String filename) {
 		return DBManager.fileManager().size(filename);
+	}
+	
+	public boolean equals(Table tb) {
+		return tblname.contentEquals(tb.tblname) && this.recordlen == tb.recordlen
+				&& schema.equals(tb.schema);
 	}
 }

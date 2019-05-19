@@ -3,13 +3,67 @@ package tinydb.server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
-import static tinydb.file.Page.*;
+import tinydb.metadata.TableManager;
 import tinydb.record.*;
 
 public class Main {
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
+		// Create or recover database "test"
+		// SQL: use database test
+		String dbname1 = "test1";
+		DBManager.initDB(dbname1);
+		System.out.println("SQL: use database test1");
+		
+		// Table schema
+		String tblname1 = "table1";
+		Schema schema1 = new Schema();
+		schema1.addIntField("a");
+		String tblname2 = "table2";
+		Schema schema2 = new Schema();
+		schema2.addIntField("a");
+
+		// Create two tables with schemas
+		// SQL: create table table1(a int); create table table2(a int); 
+		TableManager tm = DBManager.tableManager();
+		Table table1 = tm.createTable(tblname1, schema1);
+		Table table2 = tm.createTable(tblname2, schema2);
+		
+		System.out.println("Database list: \t" + DBManager.showDatabases());
+		System.out.println("Table list: \t" + tm.getTableNames());
+
+		// Recover the table from metadata (table catalog)
+		Table tableRecovered = tm.getTable(tblname1);
+		// Make sure that the recovered table is the same as the original table.
+		if (!table1.equals(tableRecovered)) 
+			throw new Exception("Failed to recover a table accurately!");
+		
+		// Drop the table
+		// SQL: drop table table1
+		DBManager.dropTable(tblname1);
+		System.out.println("SQL: drop table test1");
+		System.out.println("Database list: \t" + DBManager.showDatabases());
+		System.out.println("Table list: \t" + tm.getTableNames());
+		
+		// Create or recover database "test2"
+		// SQL: use database table2
+		String dbname2 = "test2";
+		DBManager.initDB(dbname2);
+		System.out.println("SQL: use database test2");
+		System.out.println("Database list: \t" + DBManager.showDatabases());
+		System.out.println("Table list: \t" + tm.getTableNames());
+		
+		// Switch to test1
+		DBManager.initDB(dbname1);
+		System.out.println("SQL: use database test1");
+		// Drop database
+		// SQL: drop database test2
+		DBManager.dropDatabase(dbname2);
+		System.out.println("Database list: \t" + DBManager.showDatabases());
+		System.out.println("Table list: \t" + tm.getTableNames());
+	}
+	
+	public void storageTest() throws IOException {
 		// Create database
 		// SQL: create database test
 		String dbname = "test";
@@ -18,25 +72,18 @@ public class Main {
 		// Table schema
 		// Table TEST(a int, b long, c float, d double, e string(5))
 		String tblname = "test";
+		Schema schema = new Schema();
+		schema.addIntField("a");
+		schema.addLongField("b");
+		schema.addFloatField("c");
+		schema.addDoubleField("d");
+		schema.addStringField("e", 5);
 		ArrayList<String> fldnames = new ArrayList<String>(Arrays.asList("a", "b", "c", "d", "e"));
-		// key: fldname, val: fldtype
-		HashMap<String, String> fldtypes = new HashMap<String, String>();
-		fldtypes.put("a", "Int");
-		fldtypes.put("b", "Long");
-		fldtypes.put("c", "Float");
-		fldtypes.put("d", "Double");
-		fldtypes.put("e", "String");
-		// key: fldname, val: fldsize
-		HashMap<String, Integer> fldsizes = new HashMap<String, Integer>();
-		fldsizes.put("a", INT_SIZE);
-		fldsizes.put("b", LONG_SIZE);
-		fldsizes.put("c", FLOAT_SIZE);
-		fldsizes.put("d", DOUBLE_SIZE);
-		fldsizes.put("e", STR_SIZE(5));
 		
 		// Create table with table schema
 		// SQL: create table test(a int, b long, c float, d double, e string(5))
-		Table table = new Table(tblname, fldnames, fldtypes, fldsizes);
+		TableManager tm = DBManager.tableManager();
+		Table table = tm.createTable(tblname, schema);
 		
 		// Create a RecordManager of the table
 		RecordManager rm = new RecordManager(table);
@@ -51,6 +98,7 @@ public class Main {
 		row[2] = (Float) (float) 1.0;
 		row[3] = (Double) 1.0;
 		row[4] = (String) "aaaaa";
+		System.out.println("SQL: insert into test(a, b, c, d, e) values (1, 11111111111, 1.0, 1.0, 'aaaaa')");
 		rm.insert(fldnames, new ArrayList<Object>(Arrays.asList(row)));
 
 		// Insert another row
@@ -60,6 +108,7 @@ public class Main {
 		row[2] = (Float) (float) 2.0;
 		row[3] = (Double) 2.0;
 		row[4] = null;
+		System.out.println("SQL: insert into test(a, b, c, d, e) values (2, 222222222222, 2.0, 2.0, null)");
 		rm.insert(fldnames, new ArrayList<Object>(Arrays.asList(row)));
 
 		// Print all rows in the table

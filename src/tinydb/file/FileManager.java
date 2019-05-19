@@ -83,4 +83,100 @@ public class FileManager {
 		}
 		return fc;
 	}
+	
+	public void deleteDatabase(String dbname) {
+		String homedir = System.getProperty("user.home");
+		File dbdir = new File(homedir, dbname);
+		
+		if (dbdir.isDirectory()) {
+			for (File f : dbdir.listFiles())
+				f.delete();
+		}
+		if (!dbdir.delete())
+			System.out.println("Failed to delete database: " + dbname);
+		else {
+			System.out.println("Succeed to delete database: " + dbname);
+			
+			File file = new File(homedir, "dbcat");
+			File tempfile = new File(homedir, "dbcat.temp");
+
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(file));
+				BufferedWriter bw = new BufferedWriter(new FileWriter(tempfile));
+				String lineToRemove = dbname;
+				String currentLine;
+
+				while((currentLine = br.readLine()) != null) {
+				    // trim newline when comparing with lineToRemove
+				    String trimmedLine = currentLine.trim();
+				    if (trimmedLine.equals(lineToRemove)) continue;
+				    bw.write(currentLine + System.getProperty("line.separator"));
+				}
+				br.close(); 
+				bw.close(); 
+				
+				if (tempfile.renameTo(file))
+					System.out.println(dbname + " was removed from the dbcat");
+				else
+					System.out.println(dbname + " was failed to removed from the dbcat");
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void deleteTable(String dbname, String tblname) {
+		String homedir = System.getProperty("user.home");
+		File dbdir = new File(homedir, dbname);
+		
+		if (dbdir.isDirectory()) {
+			for (File f : dbdir.listFiles()) {
+				if (f.getName().contentEquals(tblname + ".tbl")) {
+					f.delete();
+					System.out.println("Succeed to drop table: " + tblname);
+					break;
+				}
+			}
+		}
+	}
+	
+	public ArrayList<String> getDatabaseNames() {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "dbcat");
+		BufferedReader br;
+		
+		try {
+			br = new BufferedReader(new FileReader(file));
+			ArrayList<String> dbnames = new ArrayList<String>();
+		    String dbname = br.readLine();
+		    while(dbname != null) {
+		          dbnames.add(dbname);
+		          dbname = br.readLine();
+		    }
+			br.close();
+			return dbnames;
+		} catch (FileNotFoundException e) {
+			e.getStackTrace();
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public void recordDatabaseName(String dirname) {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "dbcat");
+
+	    try {
+	    	BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+			bw.append(dirname + System.getProperty("line.separator"));
+		    bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
