@@ -6,28 +6,31 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
+import tinydb.auth.AuthManager.*;
+import tinydb.util.Tuple;
+
 // File Manager for a database
 public class FileManager {
-	private File dbDir;
+	private File dbdir;
 	private boolean isNew;
 	private Map<String, FileChannel> openFiles = new HashMap<String, FileChannel>();
 
 	public FileManager(String dbname) {
 		String homedir = System.getProperty("user.home");
-		dbDir = new File(homedir, dbname);
-		isNew = !dbDir.exists();
+		dbdir = new File(homedir, dbname);
+		isNew = !dbdir.exists();
 
-		// create the directory if the database is new
-		if (isNew && !dbDir.mkdir())
+		// Create the directory if the database is new
+		if (isNew && !dbdir.mkdir())
 			throw new RuntimeException("cannot create " + dbname);
 
-		// remove any leftover temporary tables
-		for (String filename : dbDir.list())
+		// Remove any leftover temporary tables
+		for (String filename : dbdir.list())
 			if (filename.startsWith("temp"))
-				new File(dbDir, filename).delete();
+				new File(dbdir, filename).delete();
 	}
 
-	// Reads the contents of a disk block into a bytebuffer.
+	// Read the contents of a disk block into a bytebuffer.
 	synchronized void read(Block blk, ByteBuffer bb) {
 		try {
 			bb.clear();
@@ -38,7 +41,7 @@ public class FileManager {
 		}
 	}
 
-	// Writes the contents of a bytebuffer into a disk block.
+	// Write the contents of a bytebuffer into a disk block.
 	synchronized void write(Block blk, ByteBuffer bb) {
 		try {
 			bb.rewind();
@@ -49,7 +52,7 @@ public class FileManager {
 		}
 	}
 
-	// Appends the contents of a bytebuffer to the end of the specified file.
+	// Append the contents of a bytebuffer to the end of the specified file.
 	synchronized Block append(String filename, ByteBuffer bb) {
 		int newblknum = size(filename);
 		Block blk = new Block(filename, newblknum);
@@ -57,7 +60,7 @@ public class FileManager {
 		return blk;
 	}
 
-	// Returns the number of blocks in the specified file.
+	// Return the number of blocks in the specified file.
 	public synchronized int size(String filename) {
 		try {
 			FileChannel fc = getFile(filename);
@@ -72,23 +75,23 @@ public class FileManager {
 		return isNew;
 	}
 
-	// Returns the file channel for the specified filename.
+	// Return the file channel for the specified filename.
 	private FileChannel getFile(String filename) throws IOException {
 		FileChannel fc = openFiles.get(filename);
 		if (fc == null) {
-			File dbTable = new File(dbDir, filename);
+			File dbTable = new File(dbdir, filename);
 			RandomAccessFile f = new RandomAccessFile(dbTable, "rws");
 			fc = f.getChannel();
 			openFiles.put(filename, fc);
 		}
 		return fc;
 	}
-	
+
 	public void deleteDatabase(String dbname) {
 		String homedir = System.getProperty("user.home");
 		File dbdir = new File(homedir, dbname);
-		
-		if (dbdir.isDirectory()) {
+
+		if (dbdir.isDirectory()) {	// delete dbname directory recursively
 			for (File f : dbdir.listFiles())
 				f.delete();
 		}
@@ -96,42 +99,15 @@ public class FileManager {
 			System.out.println("Failed to delete database: " + dbname);
 		else {
 			System.out.println("Succeed to delete database: " + dbname);
-			
-			File file = new File(homedir, "dbcat");
-			File tempfile = new File(homedir, "dbcat.temp");
-
-			try {
-				BufferedReader br = new BufferedReader(new FileReader(file));
-				BufferedWriter bw = new BufferedWriter(new FileWriter(tempfile));
-				String lineToRemove = dbname;
-				String currentLine;
-
-				while((currentLine = br.readLine()) != null) {
-				    // trim newline when comparing with lineToRemove
-				    String trimmedLine = currentLine.trim();
-				    if (trimmedLine.equals(lineToRemove)) continue;
-				    bw.write(currentLine + System.getProperty("line.separator"));
-				}
-				br.close(); 
-				bw.close(); 
-				
-				if (tempfile.renameTo(file))
-					System.out.println(dbname + " was removed from the dbcat");
-				else
-					System.out.println(dbname + " was failed to removed from the dbcat");
-
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			deleteDatabaseName(dbname); // delete metadata from dbcat
+			deleteUserInfos(dbname);	// delete metadata from usercat
 		}
 	}
-	
+
 	public void deleteTable(String dbname, String tblname) {
 		String homedir = System.getProperty("user.home");
 		File dbdir = new File(homedir, dbname);
-		
+
 		if (dbdir.isDirectory()) {
 			for (File f : dbdir.listFiles()) {
 				if (f.getName().contentEquals(tblname + ".tbl")) {
@@ -142,20 +118,20 @@ public class FileManager {
 			}
 		}
 	}
-	
+
 	public ArrayList<String> getDatabaseNames() {
 		String homedir = System.getProperty("user.home");
 		File file = new File(homedir, "dbcat");
 		BufferedReader br;
-		
+
 		try {
 			br = new BufferedReader(new FileReader(file));
 			ArrayList<String> dbnames = new ArrayList<String>();
-		    String dbname = br.readLine();
-		    while(dbname != null) {
-		          dbnames.add(dbname);
-		          dbname = br.readLine();
-		    }
+			String dbname = br.readLine();
+			while (dbname != null) {
+				dbnames.add(dbname);
+				dbname = br.readLine();
+			}
 			br.close();
 			return dbnames;
 		} catch (FileNotFoundException e) {
@@ -167,16 +143,216 @@ public class FileManager {
 		}
 	}
 
-	public void recordDatabaseName(String dirname) {
+	public void recordDatabaseName(String dbname) {
 		String homedir = System.getProperty("user.home");
 		File file = new File(homedir, "dbcat");
 
-	    try {
-	    	BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
-			bw.append(dirname + System.getProperty("line.separator"));
-		    bw.close();
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+			bw.append(dbname + System.getProperty("line.separator"));
+			bw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void deleteDatabaseName(String dbname) {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "dbcat");
+		File tempfile = new File(homedir, "dbcat.temp");
+
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(tempfile));
+			String lineToRemove = dbname;
+			String currentLine;
+
+			while ((currentLine = br.readLine()) != null) {
+				// trim newline when comparing with lineToRemove
+				String trimmedLine = currentLine.trim();
+				if (trimmedLine.equals(lineToRemove))
+					continue;
+				bw.write(currentLine + System.getProperty("line.separator"));
+			}
+			br.close();
+			bw.close();
+
+			if (tempfile.renameTo(file))
+				System.out.println(dbname + " was removed from the dbcat");
+			else
+				System.out.println(dbname + " was failed to removed from the dbcat");
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Tuple<Roles, PasswordInfos> getUserInfo() {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "usercat");
+		BufferedReader br;
+
+		Roles roles = new Roles();
+		PasswordInfos pwinfos = new PasswordInfos();
+
+		try {
+			br = new BufferedReader(new FileReader(file));
+			String line = br.readLine();
+			
+			while (line != null) {
+				String[] tokens = line.split(" ");
+				
+				if (tokens.length == 3) 	 // username - salt - pwhash
+					pwinfos.put(tokens[0], new PasswordInfo(tokens[1], tokens[2]));
+				else if (tokens.length == 4) // username - dbname - tblname - opname
+					roles.add(line);
+				else { 
+					br.close();
+					throw new IOException("Wrong file format!");
+				}
+				
+				line = br.readLine();
+			}
+			br.close();
+			return new Tuple<Roles, PasswordInfos>(roles, pwinfos);
+		} catch (FileNotFoundException e) {
+			e.getStackTrace();
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public void recordUserInfo(String line) {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "usercat");
+
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+			bw.append(line + System.getProperty("line.separator"));
+			bw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void recordUserRole(String role) {
+		recordUserInfo(role);
+	}	
+
+	public void recordPasswordInfo(String username, String salt, String pwhash) {
+		recordUserInfo(String.join(" ", username, salt, pwhash));
+	}
+	
+
+	public void deleteUserInfos(String dbname) {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "usercat");
+		File tempfile = new File(homedir, "usercat.temp");
+
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(tempfile));
+			String currentLine;
+
+			while ((currentLine = br.readLine()) != null) {
+				// trim newline when comparing with lineToRemove
+				String trimmedLine = currentLine.trim();
+				String dbnameLine = trimmedLine.split(" ")[1];
+				if (dbnameLine.equals(dbname))
+					continue;
+				bw.write(currentLine + System.getProperty("line.separator"));
+			}
+			br.close();
+			bw.close();
+
+			if (tempfile.renameTo(file))
+				System.out.println(dbname + " was removed from the usercat");
+			else
+				System.out.println(dbname + " was failed to removed from the usercat");
+
+		} catch (FileNotFoundException e) {
+			// usercat not exists. Do not have to delete
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void deleteUserInfos(String dbname, String tblname) {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "usercat");
+		File tempfile = new File(homedir, "usercat.temp");
+
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(tempfile));
+			String currentLine;
+
+			while ((currentLine = br.readLine()) != null) {
+				// trim newline when comparing with lineToRemove
+				String[] tokens = currentLine.trim().split(" ");
+				String dbnameLine = tokens[1];
+				String tblnameLine = tokens[2];
+				if (dbnameLine.equals(dbname) && tblnameLine.equals(tblname)) // delete the data
+					continue;
+				bw.write(currentLine + System.getProperty("line.separator"));
+			}
+			br.close();
+			bw.close();
+
+			if (tempfile.renameTo(file))
+				System.out.println(dbname + " was removed from the usercat");
+			else
+				System.out.println(dbname + " was failed to removed from the usercat");
+
+		} catch (FileNotFoundException e) {
+			// usercat not exists. Do not have to delete
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteUserInfo(String line) {
+		String homedir = System.getProperty("user.home");
+		File file = new File(homedir, "usercat");
+		File tempfile = new File(homedir, "usercat.temp");
+
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(tempfile));
+			String lineToRemove = line;
+			String currentLine;
+
+			while ((currentLine = br.readLine()) != null) {
+				// trim newline when comparing with lineToRemove
+				String trimmedLine = currentLine.trim();
+				if (trimmedLine.equals(lineToRemove))
+					continue;
+				bw.write(currentLine + System.getProperty("line.separator"));
+			}
+			br.close();
+			bw.close();
+
+			if (tempfile.renameTo(file))
+				System.out.println(line + " was removed from the usercat");
+			else
+				System.out.println(line + " was failed to removed from the usercat");
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteUserRole(String role) {
+		deleteUserInfo(role);
+	}
+	
+	public void deletePasswordInfo(String username, String salt, String pwhash) {
+		deleteUserInfo(String.join(" ", username, salt, pwhash));
 	}
 }

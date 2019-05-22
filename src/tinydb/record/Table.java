@@ -113,6 +113,10 @@ public class Table {
 	public int recordLength() {
 		return recordlen;
 	}
+	
+	public String pk() {
+		return pk;
+	}
 
 	public int size(String filename) {
 		return DBManager.fileManager().size(filename);

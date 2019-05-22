@@ -39,7 +39,8 @@ public class TableManager {
 	// Creates a new table having the specified name and schema.
 	public Table createTable(String tblname, Schema sch) {
 		Table table = new Table(tblname, sch);
-		RecordManager rm = new RecordManager(table);
+		RecordManager rm = new RecordManager(table); // create .tbl file
+		rm.close();
 
 		if (isTableExists(tblname))
 			return table;

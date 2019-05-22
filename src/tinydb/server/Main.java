@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import tinydb.metadata.TableManager;
 import tinydb.record.*;
+import tinydb.util.PasswordUtils;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
@@ -19,6 +20,9 @@ public class Main {
 		String tblname1 = "table1";
 		Schema schema1 = new Schema();
 		schema1.addIntField("a");
+		schema1.addStringField("b", 5);
+		schema1.addLongField("c", true, false);
+		schema1.addFloatField("d", true, true);
 		String tblname2 = "table2";
 		Schema schema2 = new Schema();
 		schema2.addIntField("a");
@@ -32,7 +36,7 @@ public class Main {
 		System.out.println("Database list: \t" + DBManager.showDatabases());
 		System.out.println("Table list: \t" + tm.getTableNames());
 
-		// Recover the table from metadata (table catalog)
+		// Recover the table from metadata (table/field catalog)
 		Table tableRecovered = tm.getTable(tblname1);
 		// Make sure that the recovered table is the same as the original table.
 		if (!table1.equals(tableRecovered)) 
@@ -53,7 +57,7 @@ public class Main {
 		System.out.println("Database list: \t" + DBManager.showDatabases());
 		System.out.println("Table list: \t" + tm.getTableNames());
 		
-		// Switch to test1
+		// Switch database to test1
 		DBManager.initDB(dbname1);
 		System.out.println("SQL: use database test1");
 		// Drop database
@@ -61,6 +65,24 @@ public class Main {
 		DBManager.dropDatabase(dbname2);
 		System.out.println("Database list: \t" + DBManager.showDatabases());
 		System.out.println("Table list: \t" + tm.getTableNames());
+		
+		// Create user
+		// SQL: CREATE USER user1 PASSWORD password
+        String username = "user1";
+        String password = "password";
+        DBManager.createUser(username , password);
+        // Verify user
+        System.out.println(DBManager.verifyUser(username, password));
+        // Grant privilege
+        // SQL: GRANT * ON TABLE tblname1 TO user1
+        DBManager.addUserRole(username, tblname1, "*");
+        // Revoke privilege
+        // SQL: REVOKE * ON TABLE tblname1 FROM user1
+        DBManager.removeUserRole(username, tblname1, "*");
+        // Delete user
+        // SQL: DROP USER user1
+        DBManager.deleteUser(username);
+        System.out.println(DBManager.verifyUser(username, password));
 	}
 	
 	public void storageTest() throws IOException {

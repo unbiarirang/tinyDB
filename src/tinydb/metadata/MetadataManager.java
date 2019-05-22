@@ -9,8 +9,9 @@ public class MetadataManager {
 	
 	private static TableManager tm;
 
-	public MetadataManager(boolean isNew) {
+	public MetadataManager(boolean isNew, String dbname) {
 		tm = new TableManager(isNew);
+		setDBname(dbname);
 	}
 	
 	public String 		dbname() 		{ return dbname; }

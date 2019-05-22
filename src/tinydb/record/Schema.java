@@ -6,7 +6,8 @@ import java.util.*;
 // The schema of a table.
 // Contain the information of each fields(attributes) of the table
 public class Schema {
-	private Map<String, Field> fields = new HashMap<String, Field>();
+	// key: fldname value: fldinfo
+	private HashMap<String, Field> fields = new HashMap<String, Field>();
 
 	public Schema() {
 	}
