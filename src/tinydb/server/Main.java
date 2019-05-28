@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import tinydb.metadata.TableManager;
+import tinydb.parse.*;
 import tinydb.record.*;
-import tinydb.util.PasswordUtils;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
@@ -44,7 +44,7 @@ public class Main {
 		
 		// Drop the table
 		// SQL: drop table table1
-		DBManager.dropTable(tblname1);
+		DBManager.dropTable(new DropTableData(tblname1));
 		System.out.println("SQL: drop table test1");
 		System.out.println("Database list: \t" + DBManager.showDatabases());
 		System.out.println("Table list: \t" + tm.getTableNames());
@@ -62,7 +62,7 @@ public class Main {
 		System.out.println("SQL: use database test1");
 		// Drop database
 		// SQL: drop database test2
-		DBManager.dropDatabase(dbname2);
+		DBManager.dropDatabase(new DropDatabaseData(dbname2));
 		System.out.println("Database list: \t" + DBManager.showDatabases());
 		System.out.println("Table list: \t" + tm.getTableNames());
 		

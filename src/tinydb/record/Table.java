@@ -1,6 +1,5 @@
 package tinydb.record;
 
-
 import java.util.*;
 
 import tinydb.consts.Types;
@@ -35,7 +34,7 @@ public class Table {
 		initFields();
 		initOffset();
 	}
-	
+
 	public Table(String tblname, Schema schema, String pk) {
 		this.tblname = tblname;
 		this.schema = schema;
@@ -43,11 +42,11 @@ public class Table {
 		initOffset();
 		this.pk = pk;
 	}
-	
+
 	private void initFields() {
 		// init fldnames
-		this.fldnames = new ArrayList<String> (schema.fields());
-		
+		this.fldnames = new ArrayList<String>(schema.fields());
+
 		// init fldtypes
 		this.fldtypes = new HashMap<String, Integer>();
 		Iterator<String> it1 = fldnames.iterator();
@@ -55,7 +54,7 @@ public class Table {
 		while (it1.hasNext() && it2.hasNext()) {
 			this.fldtypes.put(it1.next(), it2.next());
 		}
-		
+
 		// init fldsizes
 		this.fldsizes = new HashMap<String, Integer>();
 		for (String fldname : fldnames) {
@@ -81,7 +80,7 @@ public class Table {
 	private int addFields() {
 		int offset = 0;
 		for (String fldname : fldnames) {
-			int    fldsize = fldsizes.get(fldname);
+			int fldsize = fldsizes.get(fldname);
 			offset = addField(fldname, offset, fldsize);
 		}
 		return offset;
@@ -96,11 +95,11 @@ public class Table {
 	public ArrayList<String> fldnames() {
 		return fldnames;
 	}
-	
+
 	public HashMap<String, Integer> fldtypes() {
 		return fldtypes;
 	}
-	
+
 	public String fileName() {
 		return tblname + ".tbl";
 	}
@@ -113,17 +112,24 @@ public class Table {
 	public int recordLength() {
 		return recordlen;
 	}
-	
+
 	public String pk() {
 		return pk;
+	}
+
+	public void setPk(String fldname) {
+		this.pk = fldname;
+	}
+
+	public Schema schema() {
+		return schema;
 	}
 
 	public int size(String filename) {
 		return DBManager.fileManager().size(filename);
 	}
-	
+
 	public boolean equals(Table tb) {
-		return tblname.contentEquals(tb.tblname) && this.recordlen == tb.recordlen
-				&& schema.equals(tb.schema);
+		return tblname.contentEquals(tb.tblname) && this.recordlen == tb.recordlen && schema.equals(tb.schema);
 	}
 }

@@ -64,6 +64,11 @@ public class TableManager {
 			rm.setInt("offset", table.offset(fldname));
 			rm.setInt("notnull", sch.isNotNull(fldname));
 			rm.setInt("ispk", sch.isPk(fldname));
+
+			// if (sch.isPk(fldname) == 1 && sch.getPk() != "")
+			// throw new BadSyntaxException("Only one primary key is allowed");
+			if (sch.isPk(fldname) == 1)
+				table.setPk(fldname);
 		}
 		rm.close();
 		return table;
@@ -114,7 +119,7 @@ public class TableManager {
 		RecordManager rm = new RecordManager(tableCatalog);
 		rm.delete("tblname", tblname);
 		rm.close();
-		
+
 		rm = new RecordManager(fieldCatalog);
 		rm.delete("tblname", tblname);
 		rm.close();

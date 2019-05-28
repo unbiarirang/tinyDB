@@ -9,10 +9,10 @@ import tinydb.file.Page;
 
 // Record Manager of a file
 public class RecordManager {
-	private Table 	tb;
-	private String 	filename;
-	private Record 	rc;
-	private int 	curblkid;
+	private Table tb;
+	private String filename;
+	private Record rc;
+	private int curblkid;
 
 	public RecordManager(Table tb) {
 		this.tb = tb;
@@ -102,7 +102,8 @@ public class RecordManager {
 		rc.write();
 	}
 
-	// Scan all records and delete records that specifies the condition (fldname=vlaue).
+	// Scan all records and delete records that specifies the condition
+	// (fldname=vlaue).
 	public void delete(String fldname, Object value) {
 		moveToFirst();
 
@@ -134,12 +135,22 @@ public class RecordManager {
 		}
 	}
 
+	public RID currentRid() {
+		int id = rc.currentId();
+		return new RID(curblkid, id);
+	}
+
+	public void moveToRid(RID rid) {
+		moveTo(rid.blockNumber());
+		rc.moveToId(rid.id());
+	}
+
 	private void moveTo(int b) {
 		curblkid = b;
 		Block blk = new Block(filename, curblkid);
 		rc = new Record(tb, blk);
 	}
-	
+
 	public void moveToFirst() {
 		moveTo(0);
 	}
@@ -166,11 +177,12 @@ public class RecordManager {
 			rc.print();
 		}
 	}
-	
-	// Scan all records and print records that specifies the condition (fldname=vlaue)
+
+	// Scan all records and print records that specifies the condition
+	// (fldname=vlaue)
 	public void scan(String fldname, Object value) {
 		moveToFirst();
-		
+
 		ArrayList<String> fldnames = tb.fldnames();
 		Iterator<String> it = fldnames.iterator();
 		while (it.hasNext())
