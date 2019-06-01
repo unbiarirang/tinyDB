@@ -13,6 +13,8 @@ public interface Index {
 	public void insert(Constant dataval, RID datarid);
 
 	public void delete(Constant dataval, RID datarid);
+	
+	public void modify(Constant oldval,Constant newval, RID datarid);
 
 	public void close();
 }

@@ -29,9 +29,12 @@ public class HashIndex implements Index {
 	}
 
 	public boolean next() {
-		while (te.next())
-			if (te.getVal("dataval").equals(searchkey))
+		while (te.next()) {
+			if (te.getVal("dataval").equals(searchkey)) {
+				System.out.println("searchkey: " + searchkey.value() + " was found");
 				return true;
+			}
+		}
 		return false;
 	}
 
@@ -58,6 +61,11 @@ public class HashIndex implements Index {
 				return;
 			}
 		}
+	}
+	
+	public void modify(Constant oldval,Constant newval, RID datarid) {
+		delete(oldval, datarid);
+		insert(newval, datarid);
 	}
 
 	public void close() {

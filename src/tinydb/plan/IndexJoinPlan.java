@@ -22,6 +22,7 @@ public class IndexJoinPlan implements Plan {
 	}
 
 	// Plan methods //
+
 	public Exec exec() {
 		Exec e = p1.exec();
 		// throws an exception if p2 is not a tableplan

@@ -18,6 +18,10 @@ public class HashIndexInfo implements IndexInfo {
 		tb = DBManager.metadataManager().getTableInfo(tblname);
 		si = DBManager.metadataManager().getStatInfo(tblname, tb);
 	}
+	
+	public String type() {
+		return "Hash";
+	}
 
 	public Index open() {
 		Schema sch = schema();

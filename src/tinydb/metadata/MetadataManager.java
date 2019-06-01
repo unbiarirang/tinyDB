@@ -52,7 +52,9 @@ public class MetadataManager {
 		im.createIndex(idxname, tblname, fldname);
 	}
 
+	// FIXME
 	public Map<String, IndexInfo> getIndexInfo(String tblname) {
+		// return im.getIndexInfo(tblname);
 		return im.getIndexInfo(tblname);
 	}
 }

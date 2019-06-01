@@ -4,6 +4,8 @@ import tinydb.record.*;
 import tinydb.index.Index;
 
 public interface IndexInfo {
+	public String type();
+	
 	public Index open();
 
 	public int blocksAccessed();

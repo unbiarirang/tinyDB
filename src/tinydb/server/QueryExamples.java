@@ -9,21 +9,38 @@ public class QueryExamples {
 		try {
 			// analogous to the driver
 			DBManager.initDB("testdb");
+			
+			Plan p;
+			Exec e;
 
 //			// 1. SELECT
-//			String qry = "select SId, SName, DName "
-//		        + "from DEPT, STUDENT "
-//		        + "where sid = 1";
-//			Plan p = DBManager.planner().createQueryPlan(qry);
-//			// analogous to the result set
-//			Exec e = p.exec();
+//			String qry1_1 = "drop table TEST";
+//			String qry1_2 = "create table TEST(a int, b long, c float, d double, e string(1))";
+//			String qry1_3 = "insert into TEST(a, b, c, d, e) values (1, 111111111, 1.0, 1.0, 'A')";
+//			String qry1_4 = "insert into TEST(a, b, c, d, e) values (2, 222222222, 2.0, 2.0, 'B')";
+//			String qry1_5 = "insert into TEST(a, b, c, d, e) values (3, 333333333, 3.0, 3.0, 'C')";
+//			String qry1_6 = "insert into TEST(a, b, c, d, e) values (4, 444444444, 4.0, 4.0, 'D')";
+//			DBManager.planner().executeUpdate(qry1_1);
+//			DBManager.planner().executeUpdate(qry1_2);
+//			DBManager.planner().executeUpdate(qry1_3);
+//			DBManager.planner().executeUpdate(qry1_4);
+//			DBManager.planner().executeUpdate(qry1_5);
+//			DBManager.planner().executeUpdate(qry1_6);
 //			
-//			System.out.println("Name\tMajor");
+//			String qry1_10 = "select a, b, c, d, e from TEST";
+//			
+//			p = DBManager.planner().createQueryPlan(qry1_10);
+//			e = p.exec();
+//			
+//			System.out.println("a\t b\t c\t d\t e");
 //			while (e.next()) {
-//				int sid 	 = e.getInt("sid");
-//				String sname = e.getString("sname"); //DBManager stores field names
-//				String dname = e.getString("dname"); //in lower case
-//				System.out.println(sid + "\t" + sname + "\t" + dname);
+//				int a 	 = e.getInt("a");
+//				long b   = e.getLong("b");
+//				float c  = e.getFloat("c");
+//				double d = e.getDouble("d");
+//				String str = e.getString("e");
+//				
+//				System.out.println(a + "\t" + b + "\t" + c + "\t" + d + "\t" + str);
 //			}
 //			e.close();
 
@@ -149,7 +166,7 @@ public class QueryExamples {
 //			String qry13_5 = "insert into JOINTEST1(id, a) values (1, 1)";
 //			String qry13_6 = "insert into JOINTEST1(id, a) values (10, 1)";
 //			String qry13_7 = "insert into JOINTEST2(id, b) values (1, 2)";
-//			String qry13_8 = "insert into JOINTEST2(id, b) values (1, 3)";
+//			String qry13_8 = "insert into JOINTEST2(id, b) values (1, 3)"; // Duplicated error
 //			String qry13_9 = "insert into JOINTEST2(id, b) values (10, 10)";
 //			DBManager.planner().executeUpdate(qry13_1);
 //			DBManager.planner().executeUpdate(qry13_2);
@@ -175,24 +192,27 @@ public class QueryExamples {
 //			}
 //			e.close();
 
-			// 13-2. Optimized SELECT
-			Plan p;
-			Exec e;
+			
+			// 13-2. Index SELECT
 			String qry13_1 = "drop table JOINTEST1";
 			String qry13_3 = "create table JOINTEST1(id1 int, a string(5), primary key(a))";
 			String qry13_5 = "insert into JOINTEST1(id1, a) values (1, 'aaaaa')";
 			String qry13_6 = "insert into JOINTEST1(id1, a) values (2, 'bbbbb')";
 			String qry13_7 = "insert into JOINTEST1(id1, a) values (10, 'ccccc')";
+			String qry13_4 = "insert into JOINTEST1(id1, a) values (11, 'ddddd')";
 			String qry13_8 = "delete from JOINTEST1 where id1 = 2";
+			String qry13_9 = "update JOINTEST1 set a='ddddd' where a='ccccc'";
 
 			DBManager.plannerOpt().executeUpdate(qry13_1);
 			DBManager.plannerOpt().executeUpdate(qry13_3);
 			DBManager.plannerOpt().executeUpdate(qry13_5);
 			DBManager.plannerOpt().executeUpdate(qry13_6);
 			DBManager.plannerOpt().executeUpdate(qry13_7);
+			DBManager.plannerOpt().executeUpdate(qry13_4);
 			DBManager.plannerOpt().executeUpdate(qry13_8);
+			DBManager.plannerOpt().executeUpdate(qry13_9);
 
-			String qry13_10 = "select id1, a from JOINTEST1 where a = 'aaaaa'";
+			String qry13_10 = "select id1, a from JOINTEST1 where a = 'ddddd'";
 
 			p = DBManager.plannerOpt().createQueryPlan(qry13_10);
 			e = p.exec();
@@ -203,6 +223,43 @@ public class QueryExamples {
 				System.out.println(id + "\t" + a);
 			}
 			e.close();
+			
+			
+//			// 13-3. Index JOIN
+//			Plan p;
+//			Exec e;
+//			String qry13_1 = "drop table JOINTEST1";
+//			String qry13_2 = "drop table JOINTEST2";
+//			String qry13_3 = "create table JOINTEST1(id1 int, a string(5), primary key(id1))";
+//			String qry13_4 = "create table JOINTEST2(id2 int, b string(5), primary key(id2))";
+//			String qry13_5 = "insert into JOINTEST1(id1, a) values (1, 'aaaaa')";
+//			String qry13_6 = "insert into JOINTEST1(id1, a) values (2, 'bbbbb')";
+//			String qry13_7 = "insert into JOINTEST2(id2, b) values (1, 'ccccc')";
+//			String qry13_8 = "insert into JOINTEST2(id2, b) values (2, 'ddddd')";
+//
+//			DBManager.plannerOpt().executeUpdate(qry13_1);
+//			DBManager.plannerOpt().executeUpdate(qry13_2);
+//			DBManager.plannerOpt().executeUpdate(qry13_3);
+//			DBManager.plannerOpt().executeUpdate(qry13_4);
+//			DBManager.plannerOpt().executeUpdate(qry13_5);
+//			DBManager.plannerOpt().executeUpdate(qry13_6);
+//			DBManager.plannerOpt().executeUpdate(qry13_7);
+//			DBManager.plannerOpt().executeUpdate(qry13_4);
+//			DBManager.plannerOpt().executeUpdate(qry13_8);
+//
+//			String qry13_10 = "select id1, a, b from JOINTEST1 join JOINTEST2 on id1 = id2";
+//
+//			p = DBManager.plannerOpt().createQueryPlan(qry13_10);
+//			e = p.exec();
+//
+//			while (e.next()) {
+//				int id = e.getInt("id1");
+//				String a = e.getString("a");
+//				String b = e.getString("b");
+//				System.out.println(id + "\t" + a + "\t" + b);
+//			}
+//			e.close();
+			
 
 //			// 14. Error test
 //			String qry14_1 = "drop table TEST";

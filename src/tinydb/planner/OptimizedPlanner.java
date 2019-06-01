@@ -140,7 +140,10 @@ public class OptimizedPlanner implements PlannerBase {
 
 		int count = 0;
 		while (ue.next()) {
+			// delete data record
 			ue.delete();
+			
+			// delete index record
 			for (String fldname : fields) {
 				ii = indexes.get(fldname);
 				if (ii != null) {
@@ -154,14 +157,33 @@ public class OptimizedPlanner implements PlannerBase {
 		return count;
 	}
 
+	// Optimized (modify with index)
 	public int executeModify(ModifyData data) {
 		Plan p = new TablePlan(data.tableName());
 		p = new SelectPlan(p, data.cond());
 		UpdateExec ue = (UpdateExec) p.exec();
+		
+		Schema sch = p.schema();
+		ArrayList<String> fields = sch.fields();
+		Map<String, IndexInfo> indexes = DBManager.metadataManager().getIndexInfo(data.tableName());
+		IndexInfo ii;
+		Index idx;
+		
 		int count = 0;
+		Constant newval, oldval;
 		while (ue.next()) {
-			Constant val = data.newValue().evaluate(ue);
-			ue.setVal(data.targetField(), val);
+			newval = data.newValue().evaluate(ue);
+			// modify index record
+			for (String fldname : fields) {
+				ii = indexes.get(fldname);
+				if (ii != null) {
+					oldval = ue.getVal(fldname);
+					idx = ii.open();
+					idx.modify(oldval, newval, ue.getRid());
+				}
+			}
+			// modify data record
+			ue.setVal(data.targetField(), newval);
 			count++;
 		}
 		ue.close();
@@ -180,7 +202,7 @@ public class OptimizedPlanner implements PlannerBase {
 		Iterator<Constant> vals = data.vals().iterator();
 		List<String> fields = data.fields();
 
-		if (schema.getPk() != null && !fields.contains(schema.getPk()))
+		if ((schema.getPk() !=  "") && !fields.contains(schema.getPk()))
 			throw new BadSyntaxException("PRIMARY KEY(" + schema.getPk() + ") cannot be null");
 
 		if (!fields.containsAll(schema.getNotNull()))

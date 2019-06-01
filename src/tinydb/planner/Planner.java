@@ -121,7 +121,7 @@ public class Planner implements PlannerBase {
 		Iterator<Constant> vals = data.vals().iterator();
 		List<String> fields = data.fields();
 
-		if (schema.getPk() != null && !fields.contains(schema.getPk()))
+		if (schema.getPk() != "" && !fields.contains(schema.getPk()))
 			throw new BadSyntaxException("PRIMARY KEY(" + schema.getPk() + ") cannot be null");
 
 		if (!fields.containsAll(schema.getNotNull()))
