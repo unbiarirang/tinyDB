@@ -1,6 +1,6 @@
-package tinydb.exec;
+package tinydb.exec.consts;
 
-// Wrap Java string as database constants.
+// Wrap Java value as database constants.
 public class DoubleConstant implements Constant {
 	private Double val;
 
@@ -8,7 +8,7 @@ public class DoubleConstant implements Constant {
 		val = s;
 	}
 
-	public Object asJavaVal() {
+	public Object value() {
 		return val;
 	}
 
@@ -20,13 +20,5 @@ public class DoubleConstant implements Constant {
 	public int compareTo(Constant c) {
 		DoubleConstant sc = (DoubleConstant) c;
 		return val.compareTo(sc.val);
-	}
-
-	public int hashCode() {
-		return val.hashCode();
-	}
-
-	public String toString() {
-		return val.toString();
 	}
 }

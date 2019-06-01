@@ -2,7 +2,7 @@ package tinydb.server;
 
 import java.util.ArrayList;
 
-import tinydb.plan.*;
+import tinydb.planner.*;
 import tinydb.parse.*;
 import tinydb.auth.AuthManager;
 import tinydb.auth.AuthManager.PasswordInfo;
@@ -66,7 +66,7 @@ public class DBManager {
 
 	public static int dropTable(DropTableData obj) {
 		fm.deleteTable(mm.dbname(), obj.tblName()); // delete tblname.tbl file
-		mm.deleteTable(obj.tblName()); // delete metadata from tblcat and fldcat
+		mm.deleteTable(obj.tblName()); // delete metadata from tblcat, fldcat, idxcat
 		fm.deleteUserInfos(mm.dbname(), obj.tblName()); // delete metadata from usercat
 		return 0;
 	}
@@ -120,7 +120,11 @@ public class DBManager {
 		fm.deleteUserRole(role);
 	}
 
-	public static Planner planner() {
+	public static PlannerBase planner() {
 		return new Planner();
+	}
+	
+	public static PlannerBase plannerOpt() {
+		return new OptimizedPlanner();
 	}
 }

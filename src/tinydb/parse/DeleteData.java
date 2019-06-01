@@ -1,22 +1,22 @@
 package tinydb.parse;
 
-import tinydb.exec.Predicate;
+import tinydb.exec.expr.Condition;
 
 public class DeleteData {
    private String tblname;
-   private Predicate pred;
+   private Condition cond;
    
-   public DeleteData(String tblname, Predicate pred) {
+   public DeleteData(String tblname, Condition cond) {
       this.tblname = tblname;
-      this.pred = pred;
+      this.cond = cond;
    }
 
    public String tableName() {
       return tblname;
    }
    
-   public Predicate pred() {
-      return pred;
+   public Condition cond() {
+      return cond;
    }
 }
 

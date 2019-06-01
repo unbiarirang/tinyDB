@@ -2,8 +2,10 @@ package tinydb.exec;
 
 import java.util.*;
 
+import tinydb.exec.consts.Constant;
 import tinydb.util.Tuple;
 
+// Plan for project operation
 public class ProjectExec implements Exec {
 	private Exec e;
 	private ArrayList<String> tablelist;
@@ -20,11 +22,13 @@ public class ProjectExec implements Exec {
 		this.fieldlist = (ArrayList<String>) fieldlist;
 	}
 
-	public void beforeFirst() {
-		e.beforeFirst();
+	// Exec methods //
+	public void moveToHead() {
+		e.moveToHead();
 	}
 
 	public boolean next() {
+		close();
 		return e.next();
 	}
 
@@ -98,17 +102,6 @@ public class ProjectExec implements Exec {
 			throw new RuntimeException("field " + fldname + " not found.");
 	}
 
-	private Tuple<String, String> splitTableField(String fldname) {
-		String[] temp = fldname.split("\\.");
-		String tblname = "";
-		if (temp.length == 2) {
-			tblname = temp[0];
-			fldname = temp[1];
-			return new Tuple<String, String>(tblname, fldname);
-		}
-		return new Tuple<String, String>("", fldname);
-	}
-
 	public boolean hasField(String fldname) {
 		return fieldlist.contains(fldname);
 	}
@@ -118,5 +111,16 @@ public class ProjectExec implements Exec {
 			return fieldlist.contains(fldname);
 		else
 			return fieldlist.contains(fldname) && tablelist.get(fieldlist.indexOf(fldname)).contentEquals(tblname);
+	}
+
+	private Tuple<String, String> splitTableField(String fldname) {
+		String[] temp = fldname.split("\\.");
+		String tblname = "";
+		if (temp.length == 2) {
+			tblname = temp[0];
+			fldname = temp[1];
+			return new Tuple<String, String>(tblname, fldname);
+		}
+		return new Tuple<String, String>("", fldname);
 	}
 }

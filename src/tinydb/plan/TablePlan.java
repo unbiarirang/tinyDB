@@ -2,9 +2,15 @@ package tinydb.plan;
 
 import tinydb.server.DBManager;
 import tinydb.exec.*;
+import tinydb.exec.consts.Constant;
 import tinydb.metadata.*;
 import tinydb.record.*;
+import static tinydb.consts.Types.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
+// The most basic Plan, Plan for a corresponding table
 public class TablePlan implements Plan {
 	private Table tb;
 	private StatInfo si;
@@ -13,6 +19,8 @@ public class TablePlan implements Plan {
 		tb = DBManager.metadataManager().getTableInfo(tblname);
 		si = DBManager.metadataManager().getStatInfo(tblname, tb);
 	}
+
+	// Plan methods //
 
 	public Exec exec() {
 		return new TableExec(tb);
@@ -27,10 +35,28 @@ public class TablePlan implements Plan {
 	}
 
 	public int distinctValues(String fldname) {
-		return si.distinctValues(fldname);
+		if (blocksAccessed() < 1000)
+			return si.distinctValues(fldname);
+		
+		return distinctValuesChao1(fldname);
 	}
 
 	public Schema schema() {
 		return tb.schema();
+	}
+	
+	// Chao1 sample based distinct value estimator
+	// D = d + f1^2 / 2*f2
+	private int distinctValuesChao1(String fldname) {
+		RecordManager rm = new RecordManager(tb);
+		int gap = blocksAccessed() / 100;
+		HashMap<Object, Integer> counts = rm.scanCount(fldname, gap);
+		int f1 = 0, f2 = 0;
+
+		for (Map.Entry<Object, Integer> entry : counts.entrySet()) {
+			if (entry.getValue() == 1) f1++;
+			if (entry.getValue() == 2) f2++;
+		}
+		return counts.size() + f1*f1 / 2*f2;
 	}
 }

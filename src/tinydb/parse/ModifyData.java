@@ -1,19 +1,19 @@
 package tinydb.parse;
 
-import tinydb.exec.Expression;
-import tinydb.exec.Predicate;
+import tinydb.exec.expr.Expression;
+import tinydb.exec.expr.Condition;
 
 public class ModifyData {
    private String tblname;
    private String fldname;
    private Expression newval;
-   private Predicate pred;
+   private Condition cond;
 
-   public ModifyData(String tblname, String fldname, Expression newval, Predicate pred) {
+   public ModifyData(String tblname, String fldname, Expression newval, Condition cond) {
       this.tblname = tblname;
       this.fldname = fldname;
       this.newval = newval;
-      this.pred = pred;
+      this.cond = cond;
    }
    
    public String tableName() {
@@ -28,7 +28,7 @@ public class ModifyData {
       return newval;
    }
    
-   public Predicate pred() {
-      return pred;
+   public Condition cond() {
+      return cond;
    }
 }

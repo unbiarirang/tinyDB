@@ -103,6 +103,10 @@ public class Table {
 	public String fileName() {
 		return tblname + ".tbl";
 	}
+	
+	public String tableName() {
+		return tblname;
+	}
 
 	// Returns the offset of a specified field within a record
 	public int offset(String fldname) {

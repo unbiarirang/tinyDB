@@ -26,7 +26,6 @@ public class TableManager {
 		fcatSchema.addIntField("offset");
 		fcatSchema.addIntField("notnull");
 		fcatSchema.addIntField("ispk");
-		;
 		this.fieldCatalog = new Table("fldcat", fcatSchema);
 
 		// If the database is new, then the two catalog tables are created.
@@ -117,11 +116,11 @@ public class TableManager {
 
 	public void deleteTable(String tblname) {
 		RecordManager rm = new RecordManager(tableCatalog);
-		rm.delete("tblname", tblname);
+		rm.deleteAll("tblname", tblname);
 		rm.close();
 
 		rm = new RecordManager(fieldCatalog);
-		rm.delete("tblname", tblname);
+		rm.deleteAll("tblname", tblname);
 		rm.close();
 	}
 }

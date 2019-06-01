@@ -101,6 +101,7 @@ public class FileManager {
 			System.out.println("Succeed to delete database: " + dbname);
 			deleteDatabaseName(dbname); // delete metadata from dbcat
 			deleteUserInfos(dbname);	// delete metadata from usercat
+			openFiles.clear();
 		}
 	}
 
@@ -110,13 +111,14 @@ public class FileManager {
 
 		if (dbdir.isDirectory()) {
 			for (File f : dbdir.listFiles()) {
-				if (f.getName().contentEquals(tblname + ".tbl")) {
+				String fname = f.getName();
+				if (fname.contentEquals(tblname + ".tbl") || fname.contains(tblname + "pk")) {
 					f.delete();
-					System.out.println("Succeed to drop table: " + tblname);
-					break;
+					System.out.println("Succeed to drop table: " + fname);
 				}
 			}
 		}
+		openFiles.clear();
 	}
 
 	public ArrayList<String> getDatabaseNames() {

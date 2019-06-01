@@ -1,5 +1,7 @@
 package tinydb.exec;
 
+import tinydb.exec.consts.Constant;
+
 public class ProductExec implements Exec {
 	private Exec e1, e2;
 
@@ -9,19 +11,22 @@ public class ProductExec implements Exec {
 		e1.next();
 	}
 
-	public void beforeFirst() {
-		e1.beforeFirst();
+	// Exec methods //
+
+	// LHS exec is positioned at its first record
+	// RHS exec is positioned at its head
+	public void moveToHead() {
+		e1.moveToHead();
 		e1.next();
-		e2.beforeFirst();
+		e2.moveToHead();
 	}
 
 	public boolean next() {
 		if (e2.next())
 			return true;
-		else {
-			e2.beforeFirst();
-			return e2.next() && e1.next();
-		}
+		
+		e2.moveToHead();
+		return e2.next() && e1.next();
 	}
 
 	public void close() {
@@ -31,6 +36,13 @@ public class ProductExec implements Exec {
 
 	public Constant getVal(String fldname) {
 		if (e1.hasField(fldname))
+			return e1.getVal(fldname);
+		else
+			return e2.getVal(fldname);
+	}
+	
+	public Constant getValWithTable(String fldname, String tblname) {
+		if (e1.hasField(fldname, tblname))
 			return e1.getVal(fldname);
 		else
 			return e2.getVal(fldname);
@@ -74,5 +86,8 @@ public class ProductExec implements Exec {
 	public boolean hasField(String fldname) {
 		return e1.hasField(fldname) || e2.hasField(fldname);
 	}
-
+	
+	public boolean hasField(String fldname, String tblname) {
+		return e1.hasField(fldname, tblname) || e2.hasField(fldname, tblname);
+	}
 }

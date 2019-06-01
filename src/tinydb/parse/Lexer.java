@@ -1,6 +1,9 @@
 package tinydb.parse;
 
 import java.util.*;
+
+import tinydb.util.BadSyntaxException;
+
 import java.io.*;
 
 /**

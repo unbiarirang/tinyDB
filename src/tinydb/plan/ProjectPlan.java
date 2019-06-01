@@ -16,8 +16,10 @@ public class ProjectPlan implements Plan {
 
 	public Exec exec() {
 		Exec e = p.exec();
-		// return new ProjectExec(s, schema.fields());
-		return new ProjectExec(e, ((SelectPlan) p).lhstables(), ((SelectPlan) p).rhsfields());
+		if (((SelectPlan) p).lhstables() != null && ((SelectPlan) p).rhsfields() != null)
+			return new ProjectExec(e, ((SelectPlan) p).lhstables(), ((SelectPlan) p).rhsfields());
+		
+		return new ProjectExec(e, schema.fields());
 	}
 
 	public int blocksAccessed() {

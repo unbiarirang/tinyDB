@@ -3,24 +3,28 @@ package tinydb.plan;
 import java.util.Collection;
 
 import tinydb.exec.*;
+import tinydb.exec.expr.Condition;
 import tinydb.record.Schema;
+import tinydb.util.Tuple;
 
+// Plan for select operation
 public class SelectPlan implements Plan {
 	private Plan p;
-	private Predicate pred;
+	private Condition cond;
 	private Collection<String> lhstables;
 	private Collection<String> rhsfields;
 
-	public SelectPlan(Plan p, Predicate pred) {
+	public SelectPlan(Plan p, Condition cond) {
 		this.p = p;
-		this.pred = pred;
+		this.cond = cond;
 	}
 
-	public SelectPlan(Plan p, Predicate pred, Collection<String> lhstables, Collection<String> rhsfields) {
+	public SelectPlan(Plan p, Condition cond, Collection<String> lhstables, Collection<String> rhsfields) {
 		this.p = p;
-		this.pred = pred;
-		this.lhstables = lhstables;
-		this.rhsfields = rhsfields;
+		this.cond = cond;
+		Tuple<Collection<String>, Collection<String>> fields = cond.appendFields(lhstables, rhsfields);
+		this.lhstables = fields.x;
+		this.rhsfields = fields.y;
 	}
 
 	public Collection<String> lhstables() {
@@ -31,29 +35,30 @@ public class SelectPlan implements Plan {
 		return rhsfields;
 	}
 
+	// Plan methods //
 	public Exec exec() {
 		Exec e = p.exec();
-		return new SelectExec(e, pred);
+		return new SelectExec(e, cond);
 	}
 
 	public int blocksAccessed() {
 		return p.blocksAccessed();
 	}
 
+	// Consider the reduction factor of condition
 	public int recordsOutput() {
-		return p.recordsOutput() / pred.reductionFactor(p);
+		return p.recordsOutput() / cond.reductionFactor(p);
 	}
 
 	public int distinctValues(String fldname) {
-		if (pred.equatesWithConstant(fldname) != null)
+		if (cond.getFieldValue(fldname) != null)
 			return 1;
-		else {
-			String fldname2 = pred.equatesWithField(fldname);
-			if (fldname2 != null)
-				return Math.min(p.distinctValues(fldname), p.distinctValues(fldname2));
-			else
-				return Math.min(p.distinctValues(fldname), recordsOutput());
-		}
+
+		String fldname2 = cond.getAnotherFieldName(fldname);
+		if (fldname2 != null)
+			return Math.min(p.distinctValues(fldname), p.distinctValues(fldname2));
+
+		return Math.min(p.distinctValues(fldname), recordsOutput());
 	}
 
 	public Schema schema() {

@@ -1,4 +1,4 @@
-package tinydb.parse;
+package tinydb.util;
 
 @SuppressWarnings("serial")
 public class BadSyntaxException extends RuntimeException {

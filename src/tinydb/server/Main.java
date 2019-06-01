@@ -146,7 +146,7 @@ public class Main {
 		// Delete rows with specified condition
 		// SQL: delete from test where a=1
 		System.out.println("SQL: delete from test where a=1; select * from test");
-		rm.delete("a", (Integer)1);
+		rm.deleteAll("a", (Integer)1);
 		rm.scanAll();
 	}
 }

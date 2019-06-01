@@ -1,6 +1,7 @@
 package tinydb.metadata;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import tinydb.record.Table;
 
@@ -9,10 +10,12 @@ public class MetadataManager {
 
 	private static StatManager sm;
 	private static TableManager tm;
+	private static IndexManager im;
 
 	public MetadataManager(boolean isNew, String dbname) {
 		tm = new TableManager(isNew);
 		sm = new StatManager(tm);
+		im  = new IndexManager(isNew, tm);
 		setDBname(dbname);
 	}
 
@@ -34,6 +37,7 @@ public class MetadataManager {
 
 	public void deleteTable(String tblname) {
 		tm.deleteTable(tblname);
+		im.deleteIndex(tblname);
 	}
 
 	public Table getTableInfo(String tblname) {
@@ -44,4 +48,11 @@ public class MetadataManager {
 		return sm.getStatInfo(tblname, tb);
 	}
 
+	public void createIndex(String idxname, String tblname, String fldname) {
+		im.createIndex(idxname, tblname, fldname);
+	}
+
+	public Map<String, IndexInfo> getIndexInfo(String tblname) {
+		return im.getIndexInfo(tblname);
+	}
 }

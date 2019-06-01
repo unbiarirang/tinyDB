@@ -1,9 +1,13 @@
 package tinydb.record;
 
+import static tinydb.consts.Types.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
+import tinydb.exec.consts.Constant;
 import tinydb.file.Block;
 import tinydb.file.Page;
 
@@ -56,22 +60,27 @@ public class RecordManager {
 
 	// Sets the value of the specified field in the current record.
 	public void setInt(String fldname, int val) {
+		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setInt(fldname, val);
 	}
 
 	public void setLong(String fldname, long val) {
+		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setLong(fldname, val);
 	}
 
 	public void setFloat(String fldname, float val) {
+		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setFloat(fldname, val);
 	}
 
 	public void setDouble(String fldname, double val) {
+		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setDouble(fldname, val);
 	}
 
 	public void setString(String fldname, String val) {
+		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setString(fldname, val);
 	}
 
@@ -98,14 +107,15 @@ public class RecordManager {
 
 	// Delete current record.
 	public void delete() {
+		System.out.println("delete record from " + tb.tableName());
 		rc.delete();
 		rc.write();
 	}
 
 	// Scan all records and delete records that specifies the condition
 	// (fldname=vlaue).
-	public void delete(String fldname, Object value) {
-		moveToFirst();
+	public void deleteAll(String fldname, Object value) {
+		moveToHead();
 
 		if (value instanceof Integer) {
 			while (next()) {
@@ -151,7 +161,7 @@ public class RecordManager {
 		rc = new Record(tb, blk);
 	}
 
-	public void moveToFirst() {
+	public void moveToHead() {
 		moveTo(0);
 	}
 
@@ -166,45 +176,51 @@ public class RecordManager {
 
 	// Scan and print all records
 	public void scanAll() {
+		RID prevRid = currentRid(); // save the previous RID
 		ArrayList<String> fldnames = tb.fldnames();
 		Iterator<String> it = fldnames.iterator();
+
 		while (it.hasNext())
 			System.out.print(it.next() + "\t");
-		System.out.println();
 
-		moveToFirst();
+		close();
+		moveToHead();
 		while (next()) {
 			rc.print();
 		}
+		moveToRid(prevRid);
 	}
 
 	// Scan all records and print records that specifies the condition
 	// (fldname=vlaue)
 	public void scan(String fldname, Object value) {
-		moveToFirst();
-
+		RID prevRid = currentRid(); // save the previous RID
+		Schema sch = tb.schema();
+		close();
+		moveToHead();
+		
 		ArrayList<String> fldnames = tb.fldnames();
 		Iterator<String> it = fldnames.iterator();
 		while (it.hasNext())
 			System.out.print(it.next() + "\t");
 		System.out.println();
 
-		if (value instanceof Integer) {
+		if (sch.type(fldname) == INTEGER) {
 			while (next()) {
 				if (rc.getInt(fldname) == ((Integer) value).intValue())
 					rc.print();
 			}
-		} else if (value instanceof Long) {
+		} else if (sch.type(fldname) == LONG) {
 			while (next()) {
 				if (rc.getLong(fldname) == ((Long) value).longValue())
 					rc.print();
 			}
-		} else if (value instanceof Float) {
+		} else if (sch.type(fldname) == FLOAT) {
 			while (next()) {
 				if (rc.getFloat(fldname) == ((Float) value).floatValue())
 					rc.print();
 			}
-		} else if (value instanceof Double) {
+		} else if (sch.type(fldname) == DOUBLE) {
 			while (next()) {
 				if (rc.getDouble(fldname) == ((Double) value).doubleValue())
 					rc.print();
@@ -215,5 +231,117 @@ public class RecordManager {
 					rc.print();
 			}
 		}
+		
+		moveToRid(prevRid);
+	}
+	
+	public HashMap<Object, Integer> scanCount(String fldname, int gap) {
+		RID prevRid = currentRid(); // save the previous RID
+		Schema sch = tb.schema();
+		close();
+		moveToHead();
+		
+		HashMap<Object, Integer> counts = new HashMap<Object, Integer>();
+
+		int sampleCounter = 0;
+		if (sch.type(fldname) == INTEGER) {
+			while (next()) {
+				if (sampleCounter < gap) { sampleCounter++; continue; }
+				
+				int val = rc.getInt(fldname);
+				if (counts.containsKey(val))
+					counts.put(val, counts.get(val) + 1);
+				else
+					counts.put(val, 1);
+				
+				sampleCounter = 0;
+			}
+		} else if (sch.type(fldname) == LONG) {
+			while (next()) {
+				long val = rc.getLong(fldname);
+				if (counts.containsKey(val))
+					counts.put(val, counts.get(val) + 1);
+				else
+					counts.put(val, 1);
+			}
+		} else if (sch.type(fldname) == FLOAT) {
+			while (next()) {
+				float val = rc.getFloat(fldname);
+				if (counts.containsKey(val))
+					counts.put(val, counts.get(val) + 1);
+				else
+					counts.put(val, 1);
+			}
+		} else if (sch.type(fldname) == DOUBLE) {
+			while (next()) {
+				double val = rc.getDouble(fldname);
+				if (counts.containsKey(val))
+					counts.put(val, counts.get(val) + 1);
+				else
+					counts.put(val, 1);
+			}
+		} else {
+			while (next()) {
+				String val = rc.getString(fldname);
+				if (counts.containsKey(val))
+					counts.put(val, counts.get(val) + 1);
+				else
+					counts.put(val, 1);
+			}
+		}
+		
+		moveToRid(prevRid);
+		return counts;
+	}
+	
+	public boolean isValExist(String fldname, Object value) {
+		RID prevRid = currentRid(); // save the previous RID
+		Schema sch = tb.schema();
+		close();
+		moveToHead();
+
+		if (sch.type(fldname) == INTEGER) {
+			while (next()) {
+				if (rc.getInt(fldname) == ((Long) value).intValue()) {
+					moveToRid(prevRid);
+					return true;
+				}
+			}
+		} else if (sch.type(fldname) == LONG) {
+			while (next()) {
+				if (rc.getLong(fldname) == ((Long) value).longValue()){
+					moveToRid(prevRid);
+					return true;
+				}
+			}
+		} else if (sch.type(fldname) == FLOAT) {
+			while (next()) {
+				if (rc.getFloat(fldname) == ((Double) value).floatValue()){
+					moveToRid(prevRid);
+					return true;
+				}
+			}
+		} else if (sch.type(fldname) == DOUBLE) {
+			while (next()) {
+				if (rc.getDouble(fldname) == ((Double) value).doubleValue()){
+					moveToRid(prevRid);
+					return true;
+				}
+			}
+		} else {
+			while (next()) {
+				if (rc.getString(fldname) == ((String) value).toString()){
+					moveToRid(prevRid);
+					return true;
+				}
+			}
+		}
+		
+		moveToRid(prevRid);
+		return false;
+	}
+	
+	public String getTableName() {
+		return tb.tableName();
 	}
 }

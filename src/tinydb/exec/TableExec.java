@@ -1,22 +1,31 @@
 package tinydb.exec;
 
 import static tinydb.consts.Types.*;
-import tinydb.parse.BadSyntaxException;
-import tinydb.record.*;
 
+import tinydb.exec.consts.Constant;
+import tinydb.exec.consts.DoubleConstant;
+import tinydb.exec.consts.FloatConstant;
+import tinydb.exec.consts.IntConstant;
+import tinydb.exec.consts.LongConstant;
+import tinydb.exec.consts.StringConstant;
+import tinydb.record.*;
+import tinydb.util.BadSyntaxException;
+import tinydb.util.DuplicatedException;
+
+// Just a wrapper for a RecordManager
+// The most basic Exec, execution for a corresponding table
 public class TableExec implements UpdateExec {
 	private RecordManager rm;
 	private Schema sch;
 
-	public TableExec(Table ti) {
-		rm = new RecordManager(ti);
-		sch = ti.schema();
+	public TableExec(Table tb) {
+		rm = new RecordManager(tb);
+		sch = tb.schema();
 	}
-
-	// Exec methods
-
-	public void beforeFirst() {
-		rm.moveToFirst();
+	
+	// Exec methods //
+	public void moveToHead() {
+		rm.moveToHead();
 	}
 
 	public boolean next() {
@@ -28,6 +37,19 @@ public class TableExec implements UpdateExec {
 	}
 
 	public Constant getVal(String fldname) {
+		if (sch.type(fldname) == INTEGER)
+			return new IntConstant(rm.getInt(fldname));
+		else if (sch.type(fldname) == LONG)
+			return new LongConstant(rm.getLong(fldname));
+		else if (sch.type(fldname) == FLOAT)
+			return new FloatConstant(rm.getFloat(fldname));
+		else if (sch.type(fldname) == DOUBLE)
+			return new DoubleConstant(rm.getDouble(fldname));
+		else
+			return new StringConstant(rm.getString(fldname));
+	}
+	
+	public Constant getVal(String fldname, String tblname) {
 		if (sch.type(fldname) == INTEGER)
 			return new IntConstant(rm.getInt(fldname));
 		else if (sch.type(fldname) == LONG)
@@ -63,31 +85,39 @@ public class TableExec implements UpdateExec {
 	public boolean hasField(String fldname) {
 		return sch.hasField(fldname);
 	}
+	
+	public boolean hasField(String fldname, String tblname) {
+		return sch.hasField(fldname) && getTableName().contentEquals(tblname);
+	}
 
-	// UpdateExec methods
+	// UpdateExec methods //
 	public void setVal(String fldname, Constant val) {
 		if (val == null)
 			return;
+		
+		// Check if primary key value is duplicated
+		if (sch.getPk().contentEquals(fldname) && rm.isValExist(fldname, val.value()))
+			throw new DuplicatedException("The primary key value is duplicated");
 
 		try {
 			if (sch.type(fldname) == INTEGER)
-				rm.setInt(fldname, (Integer) ((Long) val.asJavaVal()).intValue());
+				rm.setInt(fldname, (Integer) ((Long) val.value()).intValue());
 			else if (sch.type(fldname) == LONG)
-				rm.setLong(fldname, (Long) val.asJavaVal());
+				rm.setLong(fldname, (Long) val.value());
 			else if (sch.type(fldname) == FLOAT) {
 				try {
-					rm.setFloat(fldname, (Float) ((Double) val.asJavaVal()).floatValue());
+					rm.setFloat(fldname, (Float) ((Double) val.value()).floatValue());
 				} catch (java.lang.ClassCastException e) {
-					rm.setFloat(fldname, (Float) ((Long) val.asJavaVal()).floatValue());
+					rm.setFloat(fldname, (Float) ((Long) val.value()).floatValue());
 				}
 			} else if (sch.type(fldname) == DOUBLE)
 				try {
-					rm.setDouble(fldname, (Double) val.asJavaVal());
+					rm.setDouble(fldname, (Double) val.value());
 				} catch (java.lang.ClassCastException e) {
-					rm.setDouble(fldname, (Double) ((Long) val.asJavaVal()).doubleValue());
+					rm.setDouble(fldname, (Double) ((Long) val.value()).doubleValue());
 				}
 			else
-				rm.setString(fldname, (String) val.asJavaVal());
+				rm.setString(fldname, (String) val.value());
 		} catch (ClassCastException e) {
 			throw new BadSyntaxException("Attributs and value types do not match");
 		}
@@ -99,6 +129,14 @@ public class TableExec implements UpdateExec {
 
 	public void setLong(String fldname, long val) {
 		rm.setLong(fldname, val);
+	}
+	
+	public void setFloat(String fldname, float val) {
+		rm.setFloat(fldname, val);
+	}
+	
+	public void setDouble(String fldname, double val) {
+		rm.setDouble(fldname, val);
 	}
 
 	public void setString(String fldname, String val) {
@@ -119,5 +157,9 @@ public class TableExec implements UpdateExec {
 
 	public void moveToRid(RID rid) {
 		rm.moveToRid(rid);
+	}
+	
+	public String getTableName() {
+		return rm.getTableName();
 	}
 }

@@ -2,7 +2,7 @@ package tinydb.parse;
 
 import java.util.*;
 
-import tinydb.exec.Constant;
+import tinydb.exec.consts.Constant;
 
 public class InsertData {
    private String tblname;

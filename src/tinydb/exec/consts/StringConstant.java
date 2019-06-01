@@ -1,4 +1,4 @@
-package tinydb.exec;
+package tinydb.exec.consts;
 
 public class StringConstant implements Constant {
 	private String val;
@@ -7,7 +7,7 @@ public class StringConstant implements Constant {
 		val = s;
 	}
 
-	public String asJavaVal() {
+	public String value() {
 		return val;
 	}
 
@@ -19,13 +19,5 @@ public class StringConstant implements Constant {
 	public int compareTo(Constant c) {
 		StringConstant sc = (StringConstant) c;
 		return val.compareTo(sc.val);
-	}
-
-	public int hashCode() {
-		return val.hashCode();
-	}
-
-	public String toString() {
-		return val;
 	}
 }
