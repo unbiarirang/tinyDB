@@ -34,6 +34,10 @@ public class SelectExec implements UpdateExec {
 	public Constant getVal(String fldname) {
 		return e.getVal(fldname);
 	}
+	
+	public String getValToString(String fldname) {
+		return e.getValToString(fldname);
+	}
 
 	public int getInt(String fldname) {
 		return e.getInt(fldname);

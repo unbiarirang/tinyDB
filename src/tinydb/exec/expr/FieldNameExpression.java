@@ -13,7 +13,7 @@ public class FieldNameExpression implements Expression {
 		this.fldname = fldname;
 	}
 
-	public FieldNameExpression(String tblname, String fldname) {
+	public FieldNameExpression(String fldname, String tblname) {
 		this.fldname = fldname;
 		this.tblname = tblname;
 	}

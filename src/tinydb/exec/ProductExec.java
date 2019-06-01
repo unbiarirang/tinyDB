@@ -41,6 +41,13 @@ public class ProductExec implements Exec {
 			return e2.getVal(fldname);
 	}
 	
+	public String getValToString(String fldname) {
+		if (e1.hasField(fldname))
+			return e1.getValToString(fldname);
+		else
+			return e2.getValToString(fldname);
+	}
+	
 	public Constant getValWithTable(String fldname, String tblname) {
 		if (e1.hasField(fldname, tblname))
 			return e1.getVal(fldname);

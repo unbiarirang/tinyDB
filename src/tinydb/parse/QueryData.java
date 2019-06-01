@@ -1,6 +1,5 @@
 package tinydb.parse;
 
-import tinydb.exec.*;
 import tinydb.exec.expr.Condition;
 
 import java.util.*;
@@ -13,11 +12,13 @@ public class QueryData {
 	private Condition cond;
 
 	public QueryData(Collection<String> lhstables, Collection<String> fields, Collection<String> tables,
-			Condition cond) {
+			Condition cond, boolean isNaturalJoin) {
 		this.lhstables = lhstables;
 		this.fields = fields;
 		this.tables = tables;
 		this.cond = cond;
+		if (isNaturalJoin)
+			this.cond.addNaturalJoin(tables);
 	}
 
 	public Collection<String> lhstables() {
@@ -34,20 +35,5 @@ public class QueryData {
 
 	public Condition cond() {
 		return cond;
-	}
-
-	public String toString() {
-		String result = "select ";
-		for (String fldname : fields)
-			result += fldname + ", ";
-		result = result.substring(0, result.length() - 2); // remove final comma
-		result += " from ";
-		for (String tblname : tables)
-			result += tblname + ", ";
-		result = result.substring(0, result.length() - 2); // remove final comma
-		String predstring = cond.toString();
-		if (!predstring.equals(""))
-			result += " where " + predstring;
-		return result;
 	}
 }
