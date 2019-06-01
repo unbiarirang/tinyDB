@@ -53,9 +53,16 @@ public class Condition {
 	// subcondition that has all comparisons of specified schema
 	public Condition selectCond(Schema sch) {
 		Condition result = new Condition();
-		for (Comparison t : terms)
+		for (Comparison t : terms) {
+			// case1. a.id = b.id Ignore the condition
+			if (t.isLhsFieldName() && t.isRhsFieldName()
+					&& (t.getLhsFieldName().contentEquals(t.getRhsFieldName())))
+				continue;
+			
+			// case2. id1 = id2
 			if (t.existIn(sch))
 				result.terms.add(t);
+		}
 
 		if (result.terms.size() == 0)
 			return null;
@@ -71,9 +78,16 @@ public class Condition {
 		newsch.addAll(sch1);
 		newsch.addAll(sch2);
 
-		for (Comparison t : terms)
+		for (Comparison t : terms) {
+			// e.g. id1 = id2
 			if (!t.existIn(sch1) && !t.existIn(sch2) && t.existIn(newsch))
 				result.terms.add(t);
+
+			// e.g. a.id = b.id
+			if (t.isLhsFieldName() && t.isRhsFieldName() &&
+					t.getLhsFieldName().contentEquals(t.getRhsFieldName()))
+				result.terms.add(t);
+		}
 		if (result.terms.size() == 0)
 			return null;
 		else

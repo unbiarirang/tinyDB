@@ -16,10 +16,14 @@ public class ProjectPlan implements Plan {
 
 	public Exec exec() {
 		Exec e = p.exec();
-		if (((SelectPlan) p).lhstables() != null && ((SelectPlan) p).rhsfields() != null)
-			return new ProjectExec(e, ((SelectPlan) p).lhstables(), ((SelectPlan) p).rhsfields());
-		
-		return new ProjectExec(e, schema.fields());
+		try {
+			if (((SelectPlan) p).lhstables() != null && ((SelectPlan) p).rhsfields() != null)
+				return new ProjectExec(e, ((SelectPlan) p).lhstables(), ((SelectPlan) p).rhsfields());
+			
+			return new ProjectExec(e, schema.fields());
+		} catch (ClassCastException ex) {
+			return new ProjectExec(e, schema.fields());
+		}
 	}
 
 	public int blocksAccessed() {

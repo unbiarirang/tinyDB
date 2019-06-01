@@ -30,9 +30,9 @@ public class DBManager {
 
 		if (isNew) {
 			fm.recordDatabaseName(dbname);
-			System.out.println("creating new database");
+			System.out.println("creating new database " + dbname);
 		} else
-			System.out.println("recovering existing database");
+			System.out.println("recovering existing database " + dbname);
 	}
 
 	public static FileManager fileManager() {

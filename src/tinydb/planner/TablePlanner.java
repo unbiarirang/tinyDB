@@ -4,24 +4,32 @@ import tinydb.record.Schema;
 import tinydb.exec.consts.Constant;
 import tinydb.exec.expr.Condition;
 import tinydb.metadata.IndexInfo;
-import tinydb.plan.IndexJoinPlan;
-import tinydb.plan.IndexSelectPlan;
-import tinydb.plan.Plan;
-import tinydb.plan.ProductPlan;
-import tinydb.plan.SelectPlan;
-import tinydb.plan.TablePlan;
+import tinydb.plan.*;
 import tinydb.server.DBManager;
+
+import java.util.Collection;
 import java.util.Map;
 
 // TablePlan + indexes
 class TablePlanner {
 	private TablePlan plan;
 	private Condition cond;
+	private Collection<String> lhstables;
+	private Collection<String> rhsfields;
 	private Schema sch;
 	private Map<String, IndexInfo> indexes;
 
 	public TablePlanner(String tblname, Condition cond) {
 		this.cond = cond;
+		plan = new TablePlan(tblname);
+		sch = plan.schema();
+		indexes = DBManager.metadataManager().getIndexInfo(tblname);
+	}
+	
+	public TablePlanner(String tblname, Condition cond, Collection<String> lhstables, Collection<String> rhsfields) {
+		this.cond = cond;
+		this.lhstables = lhstables;
+		this.rhsfields = rhsfields;
 		plan = new TablePlan(tblname);
 		sch = plan.schema();
 		indexes = DBManager.metadataManager().getIndexInfo(tblname);
@@ -82,7 +90,7 @@ class TablePlanner {
 	private Plan addSelectCond(Plan p) {
 		Condition selectpred = cond.selectCond(sch);
 		if (selectpred != null)
-			return new SelectPlan(p, selectpred);
+			return new SelectPlan(p, selectpred, lhstables, rhsfields);
 		else
 			return p;
 	}
@@ -90,7 +98,7 @@ class TablePlanner {
 	private Plan addJoinCond(Plan p, Schema currsch) {
 		Condition joincond = cond.joinCond(currsch, sch);
 		if (joincond != null)
-			return new SelectPlan(p, joincond);
+			return new SelectPlan(p, joincond, lhstables, rhsfields);
 		else
 			return p;
 	}
