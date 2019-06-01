@@ -31,7 +31,7 @@ public class OptimizedPlanner implements PlannerBase {
 	public Plan createPlan(QueryData data) {
 		// Step 1: Create a TablePlanner object for each mentioned table
 		for (String tblname : data.tables()) {
-			TablePlanner tp = new TablePlanner(tblname, data.cond());
+			TablePlanner tp = new TablePlanner(tblname, data.cond(), data.lhstables(), data.fields());
 			tableplanners.add(tp);
 		}
 

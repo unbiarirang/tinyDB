@@ -71,7 +71,8 @@ public class Comparison {
 		String tblname1 = getLhsTableName();
 		String tblname2 = getRhsTableName();
 		Constant lhsval, rhsval;
-		if (tblname1 != null && tblname2 != null && tblname1 != "" && tblname2 != null) {
+		if (tblname1 != null && tblname2 != null && tblname1 != "" && tblname2 != null
+				&& !lhs.getFieldName().contentEquals(rhs.getFieldName())) {
 			lhsval = lhs.evaluateWithTable(e, getLhsTableName());
 			rhsval = rhs.evaluateWithTable(e, getRhsTableName());
 		}
@@ -80,7 +81,7 @@ public class Comparison {
 			rhsval = rhs.evaluate(e);
 		}
 		
-		if (lhsval == null || rhsval == null) return false; //
+		if (lhsval == null || rhsval == null) return false;
 		
 		switch (relation) {
 		case ">":
@@ -105,6 +106,14 @@ public class Comparison {
 	
 	public String getRhsTableName() {
 		return rhs.getTableName();
+	}
+	
+	public boolean isLhsFieldName() {
+		return lhs.isFieldName();
+	}
+	
+	public boolean isRhsFieldName() {
+		return rhs.isFieldName();
 	}
 	
 	public String getLhsFieldName() {

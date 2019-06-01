@@ -78,7 +78,7 @@ public class TableManager {
 		RecordManager rm = new RecordManager(fieldCatalog);
 		Schema sch = new Schema();
 		String pk = null;
-		while (rm.next())
+		while (rm.next()) {
 			if (rm.getString("tblname").equals(tblname)) {
 				String fldname = rm.getString("fldname");
 				int fldtype = rm.getInt("type");
@@ -89,6 +89,7 @@ public class TableManager {
 					pk = fldname;
 				sch.addField(fldname, fldtype, fldlen, notNull, isPk);
 			}
+		}
 		rm.close();
 		return new Table(tblname, sch, pk);
 	}
@@ -99,7 +100,8 @@ public class TableManager {
 
 		while (rm.next()) {
 			String tblname = rm.getString("tblname");
-			if (!tblname.contentEquals("tblcat") && !tblname.contentEquals("fldcat"))
+			if (!tblname.contentEquals("tblcat") && !tblname.contentEquals("fldcat")
+					&& !tblname.contentEquals("idxcat"))
 				tblnames.add(tblname);
 		}
 		rm.close();
