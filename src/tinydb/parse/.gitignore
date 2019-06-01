@@ -1,0 +1,12 @@
+/CreateIndexData.class
+/CreateTableData.class
+/CreateViewData.class
+/DeleteData.class
+/DropDatabaseData.class
+/DropTableData.class
+/InsertData.class
+/Lexer.class
+/ModifyData.class
+/Parser.class
+/QueryData.class
+/ShowTablesData.class

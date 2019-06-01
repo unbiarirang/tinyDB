@@ -203,20 +203,20 @@ public class QueryExamples {
 			String qry13_8 = "delete from JOINTEST1 where id1 = 2";
 			String qry13_9 = "update JOINTEST1 set a='ddddd' where a='ccccc'";
 
-			DBManager.plannerOpt().executeUpdate(qry13_1);
+//			DBManager.plannerOpt().executeUpdate(qry13_1);
 			DBManager.plannerOpt().executeUpdate(qry13_3);
 			DBManager.plannerOpt().executeUpdate(qry13_5);
 			DBManager.plannerOpt().executeUpdate(qry13_6);
 			DBManager.plannerOpt().executeUpdate(qry13_7);
 			DBManager.plannerOpt().executeUpdate(qry13_4);
 			DBManager.plannerOpt().executeUpdate(qry13_8);
-			DBManager.plannerOpt().executeUpdate(qry13_9);
+//			DBManager.plannerOpt().executeUpdate(qry13_9);
 
 			String qry13_10 = "select id1, a from JOINTEST1 where a = 'ddddd'";
 
 			p = DBManager.plannerOpt().createQueryPlan(qry13_10);
 			e = p.exec();
-
+			System.out.println("----------------------------");
 			while (e.next()) {
 				int id = e.getInt("id1");
 				String a = e.getString("a");
