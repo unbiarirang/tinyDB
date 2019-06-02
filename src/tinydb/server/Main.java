@@ -1,8 +1,12 @@
 package tinydb.server;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 import tinydb.metadata.TableManager;
 import tinydb.parse.*;
@@ -12,6 +16,14 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		// Create or recover database "test"
 		// SQL: use database test
+		
+//		ServerSocket serverSocket = new ServerSocket(8888);
+//		Socket c_socket = serverSocket.accept();
+//		OutputStream send_data = c_socket.getOutputStream();
+//		InputStream recv_data = c_socket.getInputStream();
+		
+		
+		
 		String dbname1 = "test1";
 		DBManager.initDB(dbname1);
 		System.out.println("SQL: use database test1");

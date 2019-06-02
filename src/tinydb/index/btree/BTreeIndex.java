@@ -16,12 +16,16 @@ public class BTreeIndex implements Index {
 	private Table dirTi, leafTi;
 	private BTreeLeaf leaf = null;
 	private Block rootblk;
+	private Constant searchkey = null;
+	private TableExec te = null;
+	private int leafblknum;
+	private int currentslot;
 
 	public BTreeIndex(String idxname, Schema leafsch) {
-		// deal with the leaves
+
 		String leaftbl = idxname + "leaf";
 		leafTi = new Table(leaftbl, leafsch);
-		// deal with the directory
+
 		Schema dirsch = new Schema();
 		
 		dirsch.add("block", leafsch);
@@ -30,10 +34,10 @@ public class BTreeIndex implements Index {
 		String dirtbl = idxname + "dir";
 		dirTi = new Table(dirtbl, dirsch);
 		rootblk = new Block(dirTi.fileName(), 0);
+		currentslot = 0;
 		
 		BTreePage page = new BTreePage(rootblk, dirTi);
 		if (page.getNumRecs() == 0) {
-			// insert initial directory entry
 			int fldtype = dirsch.type("dataval");
 			Constant minval;
 			switch (fldtype) {
@@ -58,42 +62,37 @@ public class BTreeIndex implements Index {
 		page.close();
 	}
 
-	/**
-	 * Traverses the directory to find the leaf block corresponding to the specified
-	 * search key. The method then opens a page for that leaf block, and positions
-	 * the page before the first record (if any) having that search key. The leaf
-	 * page is kept open, for use by the methods next and getDataRid.
-	 * 
-	 * @see tinydb.index.Index#beforeFirst(tinydb.exec.consts.query.Constant)
-	 */
+	//find the leaf block of search key
 	public void beforeFirst(Constant searchkey) {
 		close();
 		BTreeDir root = new BTreeDir(rootblk, dirTi);
 		int blknum = root.search(searchkey);
+		leafblknum = blknum;
 		root.close();
 		Block leafblk = new Block(leafTi.fileName(), blknum);
 		leaf = new BTreeLeaf(leafblk, leafTi, searchkey);
 	}
 
-	/**
-	 * Moves to the next leaf record having the previously-specified search key.
-	 * Returns false if there are no more such leaf records.
-	 * 
-	 * @see tinydb.index.Index#next()
-	 */
+	//get the data 
 	public boolean next() {
-		return leaf.next();
+		while (currentslot <= leaf.contents.getNumRecs()) {
+			if (leaf.contents.getDataVal(currentslot).compareTo(searchkey) == 0) {
+				System.out.println("searchkey: " + searchkey.value() + " was found");
+				leaf.setCurrentSlot(currentslot);
+				currentslot++;
+				return true;
+			}
+			currentslot++;
+		}
+		currentslot = 0;
+		return false;
 	}
-
-	/**
-	 * Returns the dataRID value from the current leaf record.
-	 * 
-	 * @see tinydb.index.Index#getDataRid()
-	 */
+	
 	public RID getDataRid() {
 		return leaf.getDataRid();
 	}
-
+	
+	
 	public void insert(Constant dataval, RID datarid) {
 		beforeFirst(dataval);
 		DirEntry e = leaf.insert(datarid);
@@ -121,16 +120,21 @@ public class BTreeIndex implements Index {
 	public static int searchCost(int numblocks, int rpb) {
 		return 1 + (int) (Math.log(numblocks) / Math.log(rpb));
 	}
-
-	@Override
+	
+	//move to the head of leaf block
 	public void moveToHead(Constant searchkey) {
-		// TODO Auto-generated method stub
-		
+		close();
+		this.searchkey = searchkey;
+		beforeFirst(searchkey);
+		te = new TableExec(leafTi);
+		te.moveTo(leafblknum);
+		System.out.println("searchkey: " + searchkey.value() + " moveToHead " +	leafTi.fileName());
+		leaf.setCurrentSlot(0);
 	}
-
-	@Override
+	
+	
 	public void modify(Constant oldval, Constant newval, RID datarid) {
-		// TODO Auto-generated method stub
-		
+		delete(oldval, datarid);
+		insert(newval, datarid);
 	}
 }

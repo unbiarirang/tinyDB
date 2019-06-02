@@ -19,24 +19,23 @@ public class BTreePage {
 	private Table tb;
 	private int slotsize;
 	private Page contents;
-
+	private RecordManager rm;
+	
 	public BTreePage(Block currentblk, Table tb) {
 		this.currentblk = currentblk;
 		this.tb = tb;
 		slotsize = tb.recordLength();
 		contents = new Page();
 		contents.read(currentblk);
+		rm = new RecordManager(tb);
 	}
 
+	//the place where will data be inserted;
 	public int findSlotBefore(Constant searchkey) {
 		int slot = 0;
-		String s = (String) getDataVal(slot).value();
-		int a = getDataVal(slot).compareTo(searchkey);
-		int num = getNumRecs();
 		while (slot <= getNumRecs() && getDataVal(slot).compareTo(searchkey) < 0)
 			slot++;
 		return slot - 1;
-//		return slot;
 	}
 
 	public void close() {
@@ -72,25 +71,10 @@ public class BTreePage {
 		return new Page().append(tb.fileName());
 	}
 
-	// Methods called only by BTreeDir
-
-	/**
-	 * Returns the block number stored in the index record at the specified slot.
-	 * 
-	 * @param slot the slot of an index record
-	 * @return the block number stored in that record
-	 */
 	public int getChildNum(int slot) {
 		return getInt(slot, "block");
 	}
 
-	/**
-	 * Inserts a directory entry at the specified slot.
-	 * 
-	 * @param slot   the slot of an index record
-	 * @param val    the dataval to be stored
-	 * @param blknum the block number to be stored
-	 */
 	public void insertDir(int slot, Constant val, int blknum) {
 		insert(slot);
 		setVal(slot, "dataval", val);
@@ -98,25 +82,10 @@ public class BTreePage {
 		contents.write(currentblk);
 	}
 
-	// Methods called only by BTreeLeaf
-
-	/**
-	 * Returns the dataRID value stored in the specified leaf index record.
-	 * 
-	 * @param slot the slot of the desired index record
-	 * @return the dataRID value store at that slot
-	 */
 	public RID getDataRid(int slot) {
 		return new RID(getInt(slot, "block"), getInt(slot, "id"));
 	}
 
-	/**
-	 * Inserts a leaf index record at the specified slot.
-	 * 
-	 * @param slot the slot of the desired index record
-	 * @param val  the new dataval
-	 * @param rid  the new dataRID
-	 */
 	public void insertLeaf(int slot, Constant val, RID rid) {
 		insert(slot);
 		setVal(slot, "dataval", val);
@@ -127,11 +96,6 @@ public class BTreePage {
 		
 	}
 
-	/**
-	 * Deletes the index record at the specified slot.
-	 * 
-	 * @param slot the slot of the deleted index record
-	 */
 	public void delete(int slot) {
 		for (int i = slot + 1; i < getNumRecs(); i++)
 			copyRecord(i, i - 1);
@@ -139,16 +103,10 @@ public class BTreePage {
 		contents.write(currentblk);
 	}
 
-	/**
-	 * Returns the number of index records in this page.
-	 * 
-	 * @return the number of index records in this page
-	 */
+	//number of record
 	public int getNumRecs() {
 		return contents.getInt(INT_SIZE);
 	}
-
-	// Private methods
 
 	private int getInt(int slot, String fldname) {
 		int pos = fldpos(slot, fldname);
@@ -189,40 +147,6 @@ public class BTreePage {
 			return new StringConstant(getString(slot, fldname));
 	}
 
-//	private void setInt(int slot, String fldname, int val) {
-//		int pos = fldpos(slot, fldname);
-//		Page p = new Page();
-//		p.read(currentblk);
-//		p.setInt(pos, val);
-//	}
-//	
-//	private void setLong(int slot, String fldname, long val) {
-//		int pos = fldpos(slot, fldname);
-//		Page p = new Page();
-//		p.read(currentblk);
-//		p.setLong(pos, val);
-//	}
-//
-//	private void setFloat(int slot, String fldname, float val) {
-//		int pos = fldpos(slot, fldname);
-//		Page p = new Page();
-//		p.read(currentblk);
-//		p.setFloat(pos, val);
-//	}
-//
-//	private void setDouble(int slot, String fldname, double val) {
-//		int pos = fldpos(slot, fldname);
-//		Page p = new Page();
-//		p.read(currentblk);
-//		p.setDouble(pos, val);
-//	}
-//
-//	private void setString(int slot, String fldname, String val) {
-//		int pos = fldpos(slot, fldname);
-//		Page p = new Page();
-//		p.read(currentblk);
-//		p.setString(pos, val);
-//	}
 	private void setInt(int slot, String fldname, int val) {
 		int pos = fldpos(slot, fldname);
 		contents.setInt(pos, val);
@@ -251,22 +175,29 @@ public class BTreePage {
 	
 	private void setVal(int slot, String fldname, Constant val) {
 		int type = tb.schema().type(fldname);
-		if (type == INTEGER)
-			setInt(slot, fldname, (Integer) val.value());
-		else if (type == LONG)
-			setLong(slot, fldname, (Long) val.value());
-		else
-			setString(slot, fldname, (String) val.value());
+		String tblname = tb.tableName();
+		String after =tblname.substring(tblname.length() - 4);
+		//if leaf table
+		if(tblname.substring(tblname.length() - 4).equals("leaf")) {
+			if (type == INTEGER)
+				setInt(slot, fldname, (Integer) ((Long) val.value()).intValue());
+			else if (type == LONG)
+				setLong(slot, fldname, (Long) val.value());
+			else
+				setString(slot, fldname, (String) val.value());
+		}
+		else { //if directory table
+			if (type == INTEGER)
+				setInt(slot, fldname, (Integer) val.value());
+			else if (type == LONG)
+				setLong(slot, fldname, (Long) val.value());
+			else
+				setString(slot, fldname, (String) val.value());
+		}
 	}
 
-//	private void setNumRecs(int n) {
-//		Page p = new Page();
-//		p.read(currentblk);
-//		p.setInt(INT_SIZE, n);
-//	}
 	private void setNumRecs(int n) {
 		contents.setInt(INT_SIZE, n);
-//		contents.append(tb.fileName());
 	}
 
 

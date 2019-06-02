@@ -54,14 +54,14 @@ public class BTreeDir {
 		contents.insertDir(newslot, e.dataVal(), e.blockNumber());
 		if (!contents.isFull())
 			return null;
-		// else page is full, so split it
+
 		int level = contents.getFlag();
 		int splitpos = contents.getNumRecs() / 2;
 		Constant splitval = contents.getDataVal(splitpos);
 		Block newblk = contents.split(splitpos, level);
 		return new DirEntry(splitval, newblk.number());
 	}
-
+	
 	private Block findChildBlock(Constant searchkey) {
 		int slot = contents.findSlotBefore(searchkey);
 		if (contents.getDataVal(slot + 1).equals(searchkey))

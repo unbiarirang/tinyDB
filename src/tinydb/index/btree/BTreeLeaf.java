@@ -7,7 +7,7 @@ import tinydb.record.*;
 public class BTreeLeaf {
 	private Table tb;
 	private Constant searchkey;
-	private BTreePage contents;
+	public BTreePage contents;
 	private int currentslot;
 
 	public BTreeLeaf(Block blk, Table tb, Constant searchkey) {
@@ -20,13 +20,20 @@ public class BTreeLeaf {
 	public void close() {
 		contents.close();
 	}
-
+	
+	//move to the n slot
+	public void setCurrentSlot(int n) {
+		currentslot = n;
+	}
+	
 	public boolean next() {
 		currentslot++;
 		if (currentslot >= contents.getNumRecs())
 			return tryOverflow();
-		else if (contents.getDataVal(currentslot).equals(searchkey))
+		else if (contents.getDataVal(currentslot).equals(searchkey)) {
+			System.out.println("searchkey: " + searchkey.value() + " was found");
 			return true;
+		}
 		else
 			return tryOverflow();
 	}
@@ -44,10 +51,6 @@ public class BTreeLeaf {
 	}
 
 	public DirEntry insert(RID datarid) {
-		// bug fix: If the page has an overflow page
-		// and the searchkey of the new record would be lowest in its page,
-		// we need to first move the entire contents of that page to a new block
-		// and then insert the new record in the now-empty current page.
 		if (contents.getFlag() >= 0 && contents.getDataVal(0).compareTo(searchkey) > 0) {
 			Constant firstval = contents.getDataVal(0);
 			Block newblk = contents.split(0, contents.getFlag());
@@ -61,11 +64,10 @@ public class BTreeLeaf {
 		contents.insertLeaf(currentslot, searchkey, datarid);
 		if (!contents.isFull())
 			return null;
-		// else page is full, so split it
+
 		Constant firstkey = contents.getDataVal(0);
 		Constant lastkey = contents.getDataVal(contents.getNumRecs() - 1);
 		if (lastkey.equals(firstkey)) {
-			// create an overflow block to hold all but the first record
 			Block newblk = contents.split(1, contents.getFlag());
 			contents.setFlag(newblk.number());
 			return null;
@@ -73,12 +75,10 @@ public class BTreeLeaf {
 			int splitpos = contents.getNumRecs() / 2;
 			Constant splitkey = contents.getDataVal(splitpos);
 			if (splitkey.equals(firstkey)) {
-				// move right, looking for the next key
 				while (contents.getDataVal(splitpos).equals(splitkey))
 					splitpos++;
 				splitkey = contents.getDataVal(splitpos);
 			} else {
-				// move left, looking for first entry having that key
 				while (contents.getDataVal(splitpos - 1).equals(splitkey))
 					splitpos--;
 			}

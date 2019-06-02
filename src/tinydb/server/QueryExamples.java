@@ -86,8 +86,9 @@ public class QueryExamples {
 			String qry13_4 = "insert into JOINTEST1(id1, a) values (2, 'bbbbb')";
 			String qry13_5 = "insert into JOINTEST1(id1, a) values (10, 'ccccc')";
 			String qry13_6 = "insert into JOINTEST1(id1, a) values (11, 'ddddd')";
-			String qry13_7 = "delete from JOINTEST1 where id1 = 2";
+			String qry13_7 = "delete from JOINTEST1 where id1 = 11";
 			String qry13_8 = "update JOINTEST1 set a='ddddd' where a='ccccc'";
+			
 
 			DBManager.plannerOpt().executeUpdate(qry13_1);
 			DBManager.plannerOpt().executeUpdate(qry13_2);
@@ -110,6 +111,7 @@ public class QueryExamples {
 			}
 			e.close();
 			
+			
 			// 13-2. Index JOIN
 			qry13_1 = "drop table JOINTEST1";
 			qry13_2 = "drop table JOINTEST2";
@@ -120,12 +122,9 @@ public class QueryExamples {
 			qry13_7 = "insert into JOINTEST2(id2, b) values (1, 'ccccc')";
 			qry13_8 = "insert into JOINTEST2(id2, b) values (2, 'ddddd')";
 
-<<<<<<< HEAD
-//			DBManager.plannerOpt().executeUpdate(qry13_1);
-=======
+
 			DBManager.plannerOpt().executeUpdate(qry13_1);
 			DBManager.plannerOpt().executeUpdate(qry13_2);
->>>>>>> 491848d2198363a58478a0335d060a6fe5c889ec
 			DBManager.plannerOpt().executeUpdate(qry13_3);
 			DBManager.plannerOpt().executeUpdate(qry13_4);
 			DBManager.plannerOpt().executeUpdate(qry13_5);
@@ -133,13 +132,6 @@ public class QueryExamples {
 			DBManager.plannerOpt().executeUpdate(qry13_7);
 			DBManager.plannerOpt().executeUpdate(qry13_4);
 			DBManager.plannerOpt().executeUpdate(qry13_8);
-<<<<<<< HEAD
-//			DBManager.plannerOpt().executeUpdate(qry13_9);
-
-			String qry13_10 = "select id1, a from JOINTEST1 where a = 'ddddd'";
-=======
->>>>>>> 491848d2198363a58478a0335d060a6fe5c889ec
-
 			qry13_10 = "select id1, a, b from JOINTEST1 join JOINTEST2 on id1 = id2";
 			p = DBManager.plannerOpt().createQueryPlan(qry13_10);
 			e = p.exec();
