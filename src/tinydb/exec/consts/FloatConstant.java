@@ -34,4 +34,8 @@ public class FloatConstant implements Constant {
 			return val.compareTo(fc.val);
 		}
 	}
+	
+	public String toString() {
+		return val.toString();
+	}
 }

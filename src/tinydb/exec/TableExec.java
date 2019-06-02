@@ -2,6 +2,8 @@ package tinydb.exec;
 
 import static tinydb.consts.Types.*;
 
+import java.util.ArrayList;
+
 import tinydb.exec.consts.Constant;
 import tinydb.exec.consts.DoubleConstant;
 import tinydb.exec.consts.FloatConstant;
@@ -53,17 +55,20 @@ public class TableExec implements UpdateExec {
 			return new StringConstant(rm.getString(fldname));
 	}
 	
-	public Constant getVal(String fldname, String tblname) {
+	public String getValToString(String fldname) {
+		if (rm.isNull(fldname)) // null
+			return "null";
+		
 		if (sch.type(fldname) == INTEGER)
-			return new IntConstant(rm.getInt(fldname));
+			return new IntConstant(rm.getInt(fldname)).toString();
 		else if (sch.type(fldname) == LONG)
-			return new LongConstant(rm.getLong(fldname));
+			return new LongConstant(rm.getLong(fldname)).toString();
 		else if (sch.type(fldname) == FLOAT)
-			return new FloatConstant(rm.getFloat(fldname));
+			return new FloatConstant(rm.getFloat(fldname)).toString();
 		else if (sch.type(fldname) == DOUBLE)
-			return new DoubleConstant(rm.getDouble(fldname));
+			return new DoubleConstant(rm.getDouble(fldname)).toString();
 		else
-			return new StringConstant(rm.getString(fldname));
+			return new StringConstant(rm.getString(fldname)).toString();
 	}
 
 	public int getInt(String fldname) {
@@ -96,9 +101,11 @@ public class TableExec implements UpdateExec {
 
 	// UpdateExec methods //
 	public void setVal(String fldname, Constant val) {
-		if (val == null)
+		if (val == null) {
+			rm.setNull(fldname);
 			return;
-		
+		}
+
 		// Check if primary key value is duplicated
 		if (sch.getPk().contentEquals(fldname) && rm.isValExist(fldname, val.value()))
 			throw new DuplicatedException("The primary key value is duplicated");

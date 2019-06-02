@@ -52,6 +52,13 @@ public class IndexJoinExec implements Exec {
 		else
 			return e.getVal(fldname);
 	}
+	
+	public String getValToString(String fldname) {
+		if (te.hasField(fldname))
+			return te.getValToString(fldname);
+		else
+			return e.getValToString(fldname);
+	}
 
 	public int getInt(String fldname) {
 		if (te.hasField(fldname))

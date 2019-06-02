@@ -13,6 +13,7 @@ public interface Exec {
 	public boolean hasField(String fldname, String tblname);
 
 	public Constant getVal(String fldname);
+	public String getValToString(String fldname);
 	public int getInt(String fldname);
 	public long getLong(String fldname);
 	public float getFloat(String fldname);

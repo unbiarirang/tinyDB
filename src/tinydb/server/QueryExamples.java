@@ -9,7 +9,6 @@ import tinydb.server.DBManager;
 public class QueryExamples {
 	public static void main(String[] args) {
 		try {
-			// analogous to the driver
 			DBManager.initDB("testdb");
 			
 			Plan p;
@@ -40,9 +39,9 @@ public class QueryExamples {
 			
 			System.out.println("a\t b\t c");
 			while (e.next()) {
-				int a 	 = e.getInt("a");
-				long b   = e.getLong("b");
-				float c  = e.getFloat("c");
+				String a = e.getValToString("a");
+				String b = e.getValToString("b");
+				String c = e.getValToString("c");
 				System.out.println(">>>>>\t" + a + "\t" + b + "\t" + c);
 			}
 			e.close();
@@ -176,6 +175,20 @@ public class QueryExamples {
 			}
 			e.close();
 
+			// 13-4. Natural JOIN
+			String qry13 = "select id, a, b from JOINTEST1 natural join JOINTEST2";
+			p = DBManager.plannerOpt().createQueryPlan(qry13);
+   			e = p.exec();
+
+			while (e.next()) {
+				int id = e.getInt("id");
+				int a = e.getInt("a");
+				int b = e.getInt("b");
+				System.out.println(">>>>>\t" + id + "\t" + a + "\t" + b);
+			}
+			e.close();
+			
+
 
 			// 8. multiple JOIN
 			String qry8_1 = "drop table JOINTEST1";
@@ -220,7 +233,6 @@ public class QueryExamples {
 			}
 			e.close();
 
-			
 
 //			// 14. Error test
 //			String qry14_1 = "drop table TEST";

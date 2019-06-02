@@ -38,6 +38,10 @@ public class IndexSelectExec implements Exec {
 	public Constant getVal(String fldname) {
 		return te.getVal(fldname);
 	}
+	
+	public String getValToString(String fldname) {
+		return te.getValToString(fldname);
+	}
 
 	public int getInt(String fldname) {
 		return te.getInt(fldname);

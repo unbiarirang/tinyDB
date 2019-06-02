@@ -34,4 +34,8 @@ public class IntConstant implements Constant {
 			return val.compareTo(ic.val);
 		}
 	}
+
+	public String toString() {
+		return val.toString();
+	}
 }

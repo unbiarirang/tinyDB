@@ -2,16 +2,8 @@ package tinydb.parse;
 
 import java.util.*;
 
-import tinydb.exec.*;
-import tinydb.exec.consts.Constant;
-import tinydb.exec.consts.DoubleConstant;
-import tinydb.exec.consts.LongConstant;
-import tinydb.exec.consts.StringConstant;
-import tinydb.exec.expr.Comparison;
-import tinydb.exec.expr.ConstantExpression;
-import tinydb.exec.expr.Expression;
-import tinydb.exec.expr.FieldNameExpression;
-import tinydb.exec.expr.Condition;
+import tinydb.exec.consts.*;
+import tinydb.exec.expr.*;
 import tinydb.record.Schema;
 import tinydb.util.BadSyntaxException;
 import tinydb.util.Tuple;
@@ -23,7 +15,7 @@ public class Parser {
 		lex = new Lexer(s);
 	}
 
-// Methods for parsing predicates, terms, expressions, constants, and fields
+	// Methods for parsing predicates, terms, expressions, constants, and fields
 
 	public String field() {
 		return lex.eatId();
@@ -48,9 +40,9 @@ public class Parser {
 			String temp = field();
 			if (lex.matchDelim('.')) {
 				lex.eatDelim('.');
-				return new FieldNameExpression(temp, field());
+				return new FieldNameExpression(field(), temp);
 			}
-			return new FieldNameExpression("", temp);
+			return new FieldNameExpression(temp, "");
 		} else
 			return new ConstantExpression(constant());
 	}
@@ -74,14 +66,14 @@ public class Parser {
 		return new Comparison(lhs, rhs, relation);
 	}
 
-	public Condition predicate() {
+	public Condition condition() {
 		Condition cond = new Condition(comparison());
 		if (lex.matchKeyword("and")) {
 			lex.eatKeyword("and");
-			cond.join(predicate());
+			cond.join(condition());
 		} else if (lex.matchKeyword("or")) {
 			lex.eatKeyword("or");
-			cond.join(predicate());
+			cond.join(condition());
 			cond.isOr = true;
 		}
 		return cond;
@@ -99,9 +91,9 @@ public class Parser {
 		Condition cond = new Condition();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
-			cond = predicate();
+			cond = condition();
 		}
-		return new QueryData(tableL, fieldL, tables, cond);
+		return new QueryData(tableL, fieldL, tables, cond, false);
 	}
 
 	public QueryData queryJoin() {
@@ -113,20 +105,29 @@ public class Parser {
 		Collection<String> tables = tableList();
 
 		Condition cond = new Condition();
-		while (lex.matchKeyword("join")) { // multiple JOIN
+		boolean isNatural;
+		if (lex.matchKeyword("natural")) {		// NATURAL JOIN
+			isNatural = true;
+			lex.eatKeyword("natural");
 			lex.eatKeyword("join");
 			tables.addAll(tableList());
+		} else {
+			isNatural = false;
+			while (lex.matchKeyword("join")) { 	// JOIN or multiple JOIN
+				lex.eatKeyword("join");
+				tables.addAll(tableList());
 
-			lex.eatKeyword("on");
-			cond.join(predicate());
+				lex.eatKeyword("on");
+				cond.join(condition());
+			}
 		}
 
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
-			cond.join(predicate());
+			cond.join(condition());
 		}
 
-		return new QueryData(tableL, fieldL, tables, cond);
+		return new QueryData(tableL, fieldL, tables, cond, isNatural);
 	}
 
 	private Tuple<Collection<String>, Collection<String>> selectList() {
@@ -148,7 +149,7 @@ public class Parser {
 			tableL.addAll(fields.x);
 			fieldL.addAll(fields.y);
 		}
-		return new Tuple(tableL, fieldL);
+		return new Tuple<Collection<String>, Collection<String>>(tableL, fieldL);
 	}
 
 	private Collection<String> tableList() {
@@ -161,7 +162,7 @@ public class Parser {
 		return L;
 	}
 
-// Methods for parsing the various update commands
+	// Methods for parsing the various update commands
 
 	public Object updateCmd() {
 		if (lex.matchKeyword("insert"))
@@ -188,8 +189,6 @@ public class Parser {
 		lex.eatKeyword("create");
 		if (lex.matchKeyword("table"))
 			return createTable();
-		else if (lex.matchKeyword("view"))
-			return createView();
 		else if (lex.matchKeyword("database"))
 			return createUseDatabase();
 		else
@@ -219,7 +218,7 @@ public class Parser {
 			return dropTable();
 	}
 
-// Method for parsing delete commands
+	// Method for parsing delete commands
 
 	public DeleteData delete() {
 		lex.eatKeyword("delete");
@@ -228,12 +227,12 @@ public class Parser {
 		Condition cond = new Condition();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
-			cond = predicate();
+			cond = condition();
 		}
 		return new DeleteData(tblname, cond);
 	}
 
-// Methods for parsing insert commands
+	// Methods for parsing insert commands
 
 	public InsertData insert() {
 		lex.eatKeyword("insert");
@@ -269,7 +268,7 @@ public class Parser {
 		return L;
 	}
 
-// Method for parsing modify commands
+	// Method for parsing modify commands
 
 	public ModifyData modify() {
 		lex.eatKeyword("update");
@@ -281,12 +280,12 @@ public class Parser {
 		Condition cond = new Condition();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
-			cond = predicate();
+			cond = condition();
 		}
 		return new ModifyData(tblname, fldname, newval, cond);
 	}
 
-// Method for parsing create table commands
+	// Method for parsing create table commands
 
 	public CreateTableData createTable() {
 		lex.eatKeyword("table");
@@ -379,17 +378,7 @@ public class Parser {
 		return schema;
 	}
 
-// Method for parsing create view commands
-
-	public CreateViewData createView() {
-		lex.eatKeyword("view");
-		String viewname = lex.eatId();
-		lex.eatKeyword("as");
-		QueryData qd = query();
-		return new CreateViewData(viewname, qd);
-	}
-
-//  Method for parsing create index commands
+	//  Method for parsing create index commands
 
 	public CreateIndexData createIndex() {
 		lex.eatKeyword("index");

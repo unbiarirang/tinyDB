@@ -6,7 +6,10 @@ import tinydb.exec.Exec;
 import tinydb.exec.consts.Constant;
 import tinydb.plan.Plan;
 import tinydb.record.Schema;
+import tinydb.record.Table;
+import tinydb.server.DBManager;
 import tinydb.util.Tuple;
+import tinydb.util.Utils;
 
 // Query condition, boolean combination of Comparisons.
 // Support only all of 'and' combination and all of 'or' combination
@@ -55,10 +58,9 @@ public class Condition {
 		Condition result = new Condition();
 		for (Comparison t : terms) {
 			// case1. a.id = b.id Ignore the condition
-			if (t.isLhsFieldName() && t.isRhsFieldName()
-					&& (t.getLhsFieldName().contentEquals(t.getRhsFieldName())))
+			if (t.isLhsFieldName() && t.isRhsFieldName() && (t.getLhsFieldName().contentEquals(t.getRhsFieldName())))
 				continue;
-			
+
 			// case2. id1 = id2
 			if (t.existIn(sch))
 				result.terms.add(t);
@@ -84,8 +86,7 @@ public class Condition {
 				result.terms.add(t);
 
 			// e.g. a.id = b.id
-			if (t.isLhsFieldName() && t.isRhsFieldName() &&
-					t.getLhsFieldName().contentEquals(t.getRhsFieldName()))
+			if (t.isLhsFieldName() && t.isRhsFieldName() && t.getLhsFieldName().contentEquals(t.getRhsFieldName()))
 				result.terms.add(t);
 		}
 		if (result.terms.size() == 0)
@@ -132,6 +133,28 @@ public class Condition {
 			}
 		}
 
-		return new Tuple(lhstables, rhsfields);
+		return new Tuple<Collection<String>, Collection<String>>(lhstables, rhsfields);
+	}
+
+	// Support natural join between two relations
+	public void addNaturalJoin(Collection<String> tables) {
+		List<String> intersect = null;
+		List<String> tblnames = new ArrayList<String>(tables);
+		Table tb1 = DBManager.tableManager().getTable(tblnames.get(0));
+		Table tb2 = DBManager.tableManager().getTable(tblnames.get(1));
+		ArrayList<String> fldnames1 = tb1.fldnames();
+		ArrayList<String> fldnames2 = tb2.fldnames();
+
+		intersect = Utils.intersection(fldnames1, fldnames2);
+		
+		Condition cond = new Condition();
+		for (String fldname : intersect) {
+			Comparison c = new Comparison(new FieldNameExpression(fldname, tblnames.get(0))
+										  , new FieldNameExpression(fldname, tblnames.get(1))
+										  , "=");
+			cond.join(new Condition(c));
+		}
+		
+		this.join(cond);
 	}
 }

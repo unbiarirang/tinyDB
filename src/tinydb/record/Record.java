@@ -17,6 +17,7 @@ public class Record {
 	private Page 	p;
 	private Block 	blk;
 	private Table 	tb;
+	private ArrayList<String> fldnames;
 	private int 	recordsize;		// a record size
 	private int 	currentid = -1; // current record id
 
@@ -24,6 +25,8 @@ public class Record {
 		this.tb = tb;
 		this.blk = blk;
 		this.p = new Page(blk);
+		this.fldnames = tb.fldnames();
+
 		recordsize = tb.recordLength() + INT_SIZE;
 		moveToFirst();
 	}
@@ -44,12 +47,12 @@ public class Record {
 		return (1 << (31 - index));
 	}
 
-	public int getFlags() {
+	private int getFlags() {
 		int position = currentpos();
 		return p.getInt(position);
 	}
 
-	public boolean getFlag(int flag) {
+	private boolean getFlag(int flag) {
 		return (getFlags() & flag) != 0;
 	}
 
@@ -121,6 +124,10 @@ public class Record {
 		int position = fieldpos(fldname);
 		p.setString(position, val);
 	}
+	
+	public void setNull(String fldname) {
+		setFlag(fldIndexToFlag(fldnames.indexOf(fldname)));
+	}
 
 	// Deletes the current record. Just mark the record as "deleted".
 	public void delete() {
@@ -156,7 +163,7 @@ public class Record {
 			else if (value instanceof String)
 				setString(fldname, ((String) value).toString());
 			else // case of null. just mask the field's null bit as 1
-				setFlag(fldIndexToFlag(fldnames.indexOf(fldname)));
+				setNull(fldname);
 		}
 		write();
 	}
@@ -173,14 +180,13 @@ public class Record {
 
 	// Print all attributes of a record.
 	public void print() {
-		ArrayList<String> fldnames = tb.fldnames();
 		HashMap<String, Integer> fldtypes = tb.fldtypes();
 		Iterator<String> it = fldnames.iterator();
 
 		while (it.hasNext()) {
 			String fldname = it.next();
 
-			if (getFlag(fldIndexToFlag(fldnames.indexOf(fldname)))) // null
+			if (isNull(fldname)) // null
 				System.out.print("null\t");
 			else if (fldtypes.get(fldname).equals(Types.INTEGER))
 				System.out.print(getInt(fldname) + "\t");
@@ -241,5 +247,9 @@ public class Record {
 			currentid++;
 		}
 		return false;
+	}
+
+	public boolean isNull(String fldname) {
+		return getFlag(fldIndexToFlag(fldnames.indexOf(fldname)));
 	}
 }

@@ -21,4 +21,8 @@ public class DoubleConstant implements Constant {
 		DoubleConstant sc = (DoubleConstant) c;
 		return val.compareTo(sc.val);
 	}
+	
+	public String toString() {
+		return val.toString();
+	}
 }

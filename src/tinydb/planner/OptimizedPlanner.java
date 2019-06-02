@@ -226,12 +226,14 @@ public class OptimizedPlanner implements PlannerBase {
 				throw new BadSyntaxException("PRIMARY KEY(" + fldname + ") cannot be null");
 
 			ue.setVal(fldname, val);
+
 			ii = indexes.get(fldname);
 			if (ii != null) {
 				idx = ii.open();
 				idx.insert(val, ue.getRid());
 			}
 		}
+
 		ue.close();
 		return 1;
 	}

@@ -25,6 +25,10 @@ public class RecordManager {
 		if (tb.size(filename) == 0)
 			insert();
 	}
+	
+	public Table table() {
+		return tb;
+	}
 
 	// Moves to the next record. Returns false if there is no next record.
 	public boolean next() {
@@ -82,6 +86,10 @@ public class RecordManager {
 	public void setString(String fldname, String val) {
 		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setString(fldname, val);
+	}
+	
+	public void setNull(String fldname) {
+		rc.setNull(fldname);
 	}
 
 	// Inserts a new empty record.
@@ -343,5 +351,9 @@ public class RecordManager {
 	
 	public String getTableName() {
 		return tb.tableName();
+	}
+
+	public boolean isNull(String fldname) {
+		return rc.isNull(fldname);
 	}
 }

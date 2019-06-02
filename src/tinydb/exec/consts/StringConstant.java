@@ -20,4 +20,8 @@ public class StringConstant implements Constant {
 		StringConstant sc = (StringConstant) c;
 		return val.compareTo(sc.val);
 	}
+	
+	public String toString() {
+		return val.toString();
+	}
 }

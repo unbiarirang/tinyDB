@@ -46,6 +46,17 @@ public class ProjectExec implements Exec {
 		else
 			throw new RuntimeException("field " + fldname + " not found.");
 	}
+	
+	public String getValToString(String fldname) {
+		Tuple<String, String> attr = splitTableField(fldname);
+		String tblname = attr.x;
+		fldname = attr.y;
+
+		if (hasField(tblname, fldname))
+			return e.getValToString(fldname);
+		else
+			throw new RuntimeException("field " + fldname + " not found.");
+	}
 
 	public int getInt(String fldname) {
 		Tuple<String, String> attr = splitTableField(fldname);

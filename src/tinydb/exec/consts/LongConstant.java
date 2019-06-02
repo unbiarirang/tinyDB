@@ -20,4 +20,8 @@ public class LongConstant implements Constant {
 		LongConstant sc = (LongConstant) c;
 		return val.compareTo(sc.val);
 	}
+	
+	public String toString() {
+		return val.toString();
+	}
 }
