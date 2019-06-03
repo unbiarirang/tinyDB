@@ -1,4 +1,4 @@
-package tinydb.index.btree;
+package tinydb.index.bplus;
 
 import static tinydb.consts.Types.*;
 import static tinydb.file.Page.*;
@@ -14,14 +14,14 @@ import tinydb.exec.consts.IntConstant;
 import tinydb.exec.consts.LongConstant;
 import tinydb.exec.consts.StringConstant;
 
-public class BTreePage {
+public class BplusPage {
 	private Block currentblk;
 	private Table tb;
 	private int slotsize;
 	private Page contents;
 	private RecordManager rm;
 	
-	public BTreePage(Block currentblk, Table tb) {
+	public BplusPage(Block currentblk, Table tb) {
 		this.currentblk = currentblk;
 		this.tb = tb;
 		slotsize = tb.recordLength();
@@ -46,9 +46,10 @@ public class BTreePage {
 		return slotpos(getNumRecs() + 1) >= BLOCK_SIZE;
 	}
 
+	//when the block is full,split the original block to two block
 	public Block split(int splitpos, int flag) {
 		Block newblk = appendNew();
-		BTreePage newpage = new BTreePage(newblk, tb);
+		BplusPage newpage = new BplusPage(newblk, tb);
 		transferRecs(splitpos, newpage);
 		newpage.setFlag(flag);
 		newpage.close();
@@ -75,6 +76,7 @@ public class BTreePage {
 		return getInt(slot, "block");
 	}
 
+	//output directory data to disk
 	public void insertDir(int slot, Constant val, int blknum) {
 		insert(slot);
 		setVal(slot, "dataval", val);
@@ -86,6 +88,7 @@ public class BTreePage {
 		return new RID(getInt(slot, "block"), getInt(slot, "id"));
 	}
 
+	//output leaf data to disk
 	public void insertLeaf(int slot, Constant val, RID rid) {
 		insert(slot);
 		setVal(slot, "dataval", val);
@@ -200,7 +203,7 @@ public class BTreePage {
 		contents.setInt(INT_SIZE, n);
 	}
 
-
+	//make the spare space in specified slot
 	private void insert(int slot) {
 		for (int i = getNumRecs(); i > slot; i--)
 			copyRecord(i - 1, i);
@@ -213,7 +216,8 @@ public class BTreePage {
 			setVal(to, fldname, getVal(from, fldname));
 	}
 
-	private void transferRecs(int slot, BTreePage dest) {
+	//transfer the data to dest Block
+	private void transferRecs(int slot, BplusPage dest) {
 		int destslot = 0;
 		while (slot < getNumRecs()) {
 			dest.insert(destslot);

@@ -1,19 +1,19 @@
-package tinydb.index.btree;
+package tinydb.index.bplus;
 
 import tinydb.exec.consts.Constant;
 import tinydb.file.Block;
 import tinydb.record.*;
 
-public class BTreeLeaf {
+public class BplusLeaf {
 	private Table tb;
 	private Constant searchkey;
-	public BTreePage contents;
+	public BplusPage contents;
 	private int currentslot;
 
-	public BTreeLeaf(Block blk, Table tb, Constant searchkey) {
+	public BplusLeaf(Block blk, Table tb, Constant searchkey) {
 		this.tb = tb;
 		this.searchkey = searchkey;
-		contents = new BTreePage(blk, tb);
+		contents = new BplusPage(blk, tb);
 		currentslot = contents.findSlotBefore(searchkey);
 	}
 
@@ -26,12 +26,12 @@ public class BTreeLeaf {
 		currentslot = n;
 	}
 	
+	//search the next record which has specified value
 	public boolean next() {
 		currentslot++;
 		if (currentslot >= contents.getNumRecs())
 			return tryOverflow();
 		else if (contents.getDataVal(currentslot).equals(searchkey)) {
-			System.out.println("searchkey: " + searchkey.value() + " was found");
 			return true;
 		}
 		else
@@ -64,7 +64,9 @@ public class BTreeLeaf {
 		contents.insertLeaf(currentslot, searchkey, datarid);
 		if (!contents.isFull())
 			return null;
-
+		//when block has spare space
+		
+		//block is full
 		Constant firstkey = contents.getDataVal(0);
 		Constant lastkey = contents.getDataVal(contents.getNumRecs() - 1);
 		if (lastkey.equals(firstkey)) {
@@ -75,10 +77,12 @@ public class BTreeLeaf {
 			int splitpos = contents.getNumRecs() / 2;
 			Constant splitkey = contents.getDataVal(splitpos);
 			if (splitkey.equals(firstkey)) {
+				//search next key
 				while (contents.getDataVal(splitpos).equals(splitkey))
 					splitpos++;
 				splitkey = contents.getDataVal(splitpos);
 			} else {
+				//search first entry having that key
 				while (contents.getDataVal(splitpos - 1).equals(splitkey))
 					splitpos--;
 			}
@@ -94,7 +98,7 @@ public class BTreeLeaf {
 			return false;
 		contents.close();
 		Block nextblk = new Block(tb.fileName(), flag);
-		contents = new BTreePage(nextblk, tb);
+		contents = new BplusPage(nextblk, tb);
 		currentslot = 0;
 		return true;
 	}

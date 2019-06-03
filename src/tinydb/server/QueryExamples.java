@@ -1,13 +1,20 @@
 package tinydb.server;
 
 import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 import tinydb.exec.Exec;
 import tinydb.plan.*;
 import tinydb.server.DBManager;
 
+
 public class QueryExamples {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException, IOException {
+				
 		try {
 			DBManager.initDB("testdb");
 			
@@ -17,8 +24,10 @@ public class QueryExamples {
 			// 1. SELECT
 			String qry1_1 = "drop table TEST";
 			// Two different grammar to create primary key
-			String qry1_2 = "create table TEST(a int primary key, b long not null, c float)";
-			//String qry1_2 = "create table TEST(a int, b long not null, c float, primary key(a))";
+//		create table avengers(id int not null,name string(32) not null,power int not null,weight float,primary key(ID));
+//			String qry1_2 = "create table TEST(a int primary key, b long not null, c float)";
+//			String qry1_2 = "create table TEST(a int, b long not null, c float, primary key(a))";
+			String qry1_2 = "create table avengers(id int not null,name string(32) not null,power int not null,weight float,primary key(ID))";
 			String qry1_3 = "insert into TEST(a, b, c) values (1, 111111111, 1.0)";
 			String qry1_4 = "insert into TEST(a, b, c) values (2, 222222222, 2.0)";
 			String qry1_5 = "insert into TEST(a, b, c) values (3, 333333333, 3.0)";
@@ -26,6 +35,7 @@ public class QueryExamples {
 			String qry1_7 = "insert into TEST(a, b, c) values (5, 555555555, null)";
 			DBManager.plannerOpt().executeUpdate(qry1_1);
 			DBManager.plannerOpt().executeUpdate(qry1_2);
+//			System.out.println("a);
 			DBManager.plannerOpt().executeUpdate(qry1_3);
 			DBManager.plannerOpt().executeUpdate(qry1_4);
 			DBManager.plannerOpt().executeUpdate(qry1_5);

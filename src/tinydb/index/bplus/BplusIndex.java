@@ -1,4 +1,4 @@
-package tinydb.index.btree;
+package tinydb.index.bplus;
 
 import static tinydb.consts.Types.*;
 import tinydb.file.Block;
@@ -12,22 +12,22 @@ import tinydb.exec.consts.LongConstant;
 import tinydb.exec.consts.StringConstant;
 import tinydb.index.Index;
 
-public class BTreeIndex implements Index {
+public class BplusIndex implements Index {
 	private Table dirTi, leafTi;
-	private BTreeLeaf leaf = null;
+	private BplusLeaf leaf = null;
 	private Block rootblk;
 	private Constant searchkey = null;
 	private TableExec te = null;
 	private int leafblknum;
 	private int currentslot;
 
-	public BTreeIndex(String idxname, Schema leafsch) {
+	public BplusIndex(String idxname, Schema leafsch) {
 
 		String leaftbl = idxname + "leaf";
 		leafTi = new Table(leaftbl, leafsch);
 
 		Schema dirsch = new Schema();
-		
+
 		dirsch.add("block", leafsch);
 		dirsch.add("dataval", leafsch);
 
@@ -35,8 +35,8 @@ public class BTreeIndex implements Index {
 		dirTi = new Table(dirtbl, dirsch);
 		rootblk = new Block(dirTi.fileName(), 0);
 		currentslot = 0;
-		
-		BTreePage page = new BTreePage(rootblk, dirTi);
+
+		BplusPage page = new BplusPage(rootblk, dirTi);
 		if (page.getNumRecs() == 0) {
 			int fldtype = dirsch.type("dataval");
 			Constant minval;
@@ -62,18 +62,18 @@ public class BTreeIndex implements Index {
 		page.close();
 	}
 
-	//find the leaf block of search key
+	// find the leaf block of search key
 	public void beforeFirst(Constant searchkey) {
 		close();
-		BTreeDir root = new BTreeDir(rootblk, dirTi);
+		BplusDir root = new BplusDir(rootblk, dirTi);
 		int blknum = root.search(searchkey);
 		leafblknum = blknum;
 		root.close();
 		Block leafblk = new Block(leafTi.fileName(), blknum);
-		leaf = new BTreeLeaf(leafblk, leafTi, searchkey);
+		leaf = new BplusLeaf(leafblk, leafTi, searchkey);
 	}
 
-	//get the data 
+	// get the data
 	public boolean next() {
 		while (currentslot <= leaf.contents.getNumRecs()) {
 			if (leaf.contents.getDataVal(currentslot).compareTo(searchkey) == 0) {
@@ -87,20 +87,23 @@ public class BTreeIndex implements Index {
 		currentslot = 0;
 		return false;
 	}
-	
+
 	public RID getDataRid() {
 		return leaf.getDataRid();
 	}
-	
-	
+
 	public void insert(Constant dataval, RID datarid) {
 		beforeFirst(dataval);
 		DirEntry e = leaf.insert(datarid);
 		leaf.close();
 		if (e == null)
 			return;
-		BTreeDir root = new BTreeDir(rootblk, dirTi);
+		
+		//if leaf block is full
+		BplusDir root = new BplusDir(rootblk, dirTi);
 		DirEntry e2 = root.insert(e);
+		
+		//if directory block is full
 		if (e2 != null)
 			root.makeNewRoot(e2);
 		root.close();
@@ -120,19 +123,18 @@ public class BTreeIndex implements Index {
 	public static int searchCost(int numblocks, int rpb) {
 		return 1 + (int) (Math.log(numblocks) / Math.log(rpb));
 	}
-	
-	//move to the head of leaf block
+
+	// move to the head of leaf block
 	public void moveToHead(Constant searchkey) {
 		close();
 		this.searchkey = searchkey;
 		beforeFirst(searchkey);
 		te = new TableExec(leafTi);
 		te.moveTo(leafblknum);
-		System.out.println("searchkey: " + searchkey.value() + " moveToHead " +	leafTi.fileName());
+		System.out.println("searchkey: " + searchkey.value() + " moveToHead " + leafTi.fileName());
 		leaf.setCurrentSlot(0);
 	}
-	
-	
+
 	public void modify(Constant oldval, Constant newval, RID datarid) {
 		delete(oldval, datarid);
 		insert(newval, datarid);

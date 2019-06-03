@@ -3,3 +3,7 @@
 /BTreeLeaf.class
 /BTreePage.class
 /DirEntry.class
+/BplusDir.class
+/BplusIndex.class
+/BplusLeaf.class
+/BplusPage.class

@@ -1,4 +1,4 @@
-package tinydb.index.btree;
+package tinydb.index.bplus;
 
 import tinydb.exec.consts.Constant;
 
