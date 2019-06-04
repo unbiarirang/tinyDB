@@ -29,10 +29,15 @@ public class OptimizedPlanner implements PlannerBase {
 	}
 	
 	public Plan createPlan(QueryData data) {
+		Collection<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
+
 		// Step 1: Create a TablePlanner object for each mentioned table
 		for (String tblname : data.tables()) {
-			TablePlanner tp = new TablePlanner(tblname, data.cond(), data.lhstables(), data.fields());
+			TablePlanner tp = new TablePlanner(tblname, data.cond(), data.lhstables(), fields);
 			tableplanners.add(tp);
+
+			if (data.isAll())
+				fields.addAll(tp.schema().fields());
 		}
 
 		// Step 2: Choose the lowest-size plan to begin the join order
@@ -48,7 +53,7 @@ public class OptimizedPlanner implements PlannerBase {
 		}
 
 		// Step 4. Project on the field names and return
-		return new ProjectPlan(currentplan, data.fields());
+		return new ProjectPlan(currentplan, fields);
 	}
 
 	private Plan getLowestSelectPlan() {
@@ -200,13 +205,13 @@ public class OptimizedPlanner implements PlannerBase {
 		UpdateExec ue = (UpdateExec) p.exec();
 
 		Iterator<Constant> vals = data.vals().iterator();
-		List<String> fields = data.fields();
+		List<String> fields = data.isAll() ? schema.fields() : data.fields();
 
 		if ((schema.getPk() !=  "") && !fields.contains(schema.getPk()))
 			throw new BadSyntaxException("PRIMARY KEY(" + schema.getPk() + ") cannot be null");
 
 		if (!fields.containsAll(schema.getNotNull()))
-			throw new BadSyntaxException("NOT NULL field(" + schema.getNotNull() + ") cannot be null");
+			throw new BadSyntaxException("Must contain not null fields " + schema.getNotNull());
 
 		ue.insert();
 		

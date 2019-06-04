@@ -78,41 +78,59 @@ public class Parser {
 		}
 		return cond;
 	}
+	
+	public boolean isAll() {
+		if (lex.matchDelim('*')) {
+			lex.eatDelim('*');
+			return true;
+		}
+		return false;
+	}
 
 // Methods for parsing queries
 
 	public QueryData query() {
+		Collection<String> tableL = null, fieldL = null;
+
 		lex.eatKeyword("select");
-		Tuple<Collection<String>, Collection<String>> fields = selectList(); // tblname.fldname
-		Collection<String> tableL = fields.x;
-		Collection<String> fieldL = fields.y;
+		boolean isAll = isAll(); // whether "select *" or not
+		if (!isAll) {			 // query has fields information
+			Tuple<Collection<String>, Collection<String>> fields = selectList(); // tblname.fldname
+			tableL = fields.x;
+			fieldL = fields.y;
+		}
 		lex.eatKeyword("from");
+
 		Collection<String> tables = tableList();
 		Condition cond = new Condition();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
 			cond = condition();
 		}
-		return new QueryData(tableL, fieldL, tables, cond, false);
+		return new QueryData(tableL, fieldL, tables, cond, false, isAll);
 	}
 
 	public QueryData queryJoin() {
+		Collection<String> tableL = null, fieldL = null;
+		boolean isNatural = false;
+		
 		lex.eatKeyword("select");
-		Tuple<Collection<String>, Collection<String>> fields = selectList();
-		Collection<String> tableL = fields.x;
-		Collection<String> fieldL = fields.y;
+		boolean isAll = isAll(); // whether "select *" or not
+		if (!isAll) {            // query has fields information
+			Tuple<Collection<String>, Collection<String>> fields = selectList(); // tblname.fldname
+			tableL = fields.x;
+			fieldL = fields.y;
+		}
 		lex.eatKeyword("from");
-		Collection<String> tables = tableList();
 
+		Collection<String> tables = tableList();
 		Condition cond = new Condition();
-		boolean isNatural;
 		if (lex.matchKeyword("natural")) {		// NATURAL JOIN
 			isNatural = true;
 			lex.eatKeyword("natural");
 			lex.eatKeyword("join");
 			tables.addAll(tableList());
 		} else {
-			isNatural = false;
 			while (lex.matchKeyword("join")) { 	// JOIN or multiple JOIN
 				lex.eatKeyword("join");
 				tables.addAll(tableList());
@@ -127,7 +145,7 @@ public class Parser {
 			cond.join(condition());
 		}
 
-		return new QueryData(tableL, fieldL, tables, cond, isNatural);
+		return new QueryData(tableL, fieldL, tables, cond, isNatural, isAll);
 	}
 
 	private Tuple<Collection<String>, Collection<String>> selectList() {
@@ -235,17 +253,25 @@ public class Parser {
 	// Methods for parsing insert commands
 
 	public InsertData insert() {
+		boolean isAll = false;
+		List<String> flds = null;
+		
 		lex.eatKeyword("insert");
 		lex.eatKeyword("into");
 		String tblname = lex.eatId();
-		lex.eatDelim('(');
-		List<String> flds = fieldList();
-		lex.eatDelim(')');
+
+		if (lex.matchDelim('(')) {	// query has field information
+			lex.eatDelim('(');
+			flds = fieldList();
+			lex.eatDelim(')');
+		} else							// means all fields
+			isAll = true;
+		
 		lex.eatKeyword("values");
 		lex.eatDelim('(');
 		List<Constant> vals = constList();
 		lex.eatDelim(')');
-		return new InsertData(tblname, flds, vals);
+		return new InsertData(tblname, flds, vals, isAll);
 	}
 
 	private List<String> fieldList() {
@@ -340,11 +366,16 @@ public class Parser {
 		lex.eatKeyword("key");
 		lex.eatDelim('(');
 		String fldname = field();
-		lex.eatDelim(')');
+		if (lex.matchDelim(')'))
+			lex.eatDelim(')');
+		else
+			throw new BadSyntaxException("Only one primary key is allowed");
+
 		if (schema.getPk() == null || schema.getPk() == "")
 			schema.setPk(fldname);
 		else
 			throw new BadSyntaxException("Only one primary key is allowed");
+
 		return schema;
 	}
 

@@ -22,8 +22,4 @@ public class RID {
 		RID r = (RID) obj;
 		return blknum == r.blknum && id==r.id;
 	}
-
-	public String toString() {
-		return "[" + blknum + ", " + id + "]";
-	}
 }

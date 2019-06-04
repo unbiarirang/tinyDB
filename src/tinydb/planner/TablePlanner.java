@@ -16,13 +16,13 @@ class TablePlanner {
 	private Condition cond;
 	private Collection<String> lhstables;
 	private Collection<String> rhsfields;
-	private Schema sch;
+	private Schema schema;
 	private Map<String, IndexInfo> indexes;
 
 	public TablePlanner(String tblname, Condition cond) {
 		this.cond = cond;
 		plan = new TablePlan(tblname);
-		sch = plan.schema();
+		schema = plan.schema();
 		indexes = DBManager.metadataManager().getIndexInfo(tblname);
 	}
 	
@@ -31,7 +31,7 @@ class TablePlanner {
 		this.lhstables = lhstables;
 		this.rhsfields = rhsfields;
 		plan = new TablePlan(tblname);
-		sch = plan.schema();
+		schema = plan.schema();
 		indexes = DBManager.metadataManager().getIndexInfo(tblname);
 	}
 
@@ -44,7 +44,7 @@ class TablePlanner {
 
 	public Plan makeJoinPlan(Plan current) {
 		Schema currsch = current.schema();
-		Condition joincond = cond.joinCond(sch, currsch);
+		Condition joincond = cond.joinCond(schema, currsch);
 		if (joincond == null)
 			return null;
 		Plan p = makeIndexJoin(current, currsch);
@@ -88,7 +88,7 @@ class TablePlanner {
 	}
 
 	private Plan addSelectCond(Plan p) {
-		Condition selectpred = cond.selectCond(sch);
+		Condition selectpred = cond.selectCond(schema);
 		if (selectpred != null)
 			return new SelectPlan(p, selectpred, lhstables, rhsfields);
 		else
@@ -96,10 +96,14 @@ class TablePlanner {
 	}
 
 	private Plan addJoinCond(Plan p, Schema currsch) {
-		Condition joincond = cond.joinCond(currsch, sch);
+		Condition joincond = cond.joinCond(currsch, schema);
 		if (joincond != null)
 			return new SelectPlan(p, joincond, lhstables, rhsfields);
 		else
 			return p;
+	}
+	
+	public Schema schema() {
+		return schema;
 	}
 }

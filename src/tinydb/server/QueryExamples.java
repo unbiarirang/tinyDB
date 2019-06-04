@@ -19,7 +19,7 @@ public class QueryExamples {
 			// Two different grammar to create primary key
 			String qry1_2 = "create table TEST(a int primary key, b long not null, c float)";
 			//String qry1_2 = "create table TEST(a int, b long not null, c float, primary key(a))";
-			String qry1_3 = "insert into TEST(a, b, c) values (1, 111111111, 1.0)";
+			String qry1_3 = "insert into TEST values (1, 111111111, 1.0)";
 			String qry1_4 = "insert into TEST(a, b, c) values (2, 222222222, 2.0)";
 			String qry1_5 = "insert into TEST(a, b, c) values (3, 333333333, 3.0)";
 			String qry1_6 = "insert into TEST(a, b, c) values (4, 444444444, 4.0)";
@@ -32,7 +32,7 @@ public class QueryExamples {
 			DBManager.plannerOpt().executeUpdate(qry1_6);
 			DBManager.plannerOpt().executeUpdate(qry1_7);
 			
-			String qry1_10 = "select a, b, c from TEST";
+			String qry1_10 = "select * from TEST";
 			
 			p = DBManager.plannerOpt().createQueryPlan(qry1_10);
 			e = p.exec();
@@ -232,39 +232,38 @@ public class QueryExamples {
 			e.close();
 
 
-//			// 14. Error test
-//			String qry14_1 = "drop table TEST";
-//			String qry14_2 = "create table TEST(a int primary key, b long not null, c float not null, d double, e string(1))";
-//			String qryFewValue = "insert into TEST(a, b, c) values (1, 2)";
-//			String qryTypeNotMatch = "insert into TEST(a, b, c) values (1, 2, 'string')";
-//			String qryNeedPrimaryKey = "insert into TEST(a, b, c) values (null, 2, 3)";
-//			String qryNeedPrimaryKey2 = "insert into TEST(b, c) values (2, 3)";
-//			String qryNeedNotNullValue = "insert into TEST(a, b, c) values (1, null, 3)";
-//			String qryNeedNotNullValue2 = "insert into TEST(a, c) values (1, 3)";
-//			String qryTooManyPk = "create table TEST2(a int primary key, b int primary key)";
-//			String qryTooManyPk2 = "create table TEST2(a int primary key, b int, primary key (b))";
-//			
-//			DBManager.planner().executeUpdate(qry14_1);
-//			DBManager.planner().executeUpdate(qry14_2);
-////			DBManager.planner().executeUpdate(qryFewValue);
-////			DBManager.planner().executeUpdate(qryTypeNotMatch);
-////			DBManager.planner().executeUpdate(qryNeedPrimaryKey2);
-////			DBManager.planner().executeUpdate(qryNeedNotNullValue);
-////			DBManager.planner().executeUpdate(qryNeedNotNullValue2);
-//			DBManager.planner().executeUpdate(qryTooManyPk2);
-//			
-//			String qry14_3 = "select a, b, c, d from TEST";
-//			Plan p = DBManager.planner().createQueryPlan(qry14_3);
-//			Exec e = p.exec();
-//
-//			while (e.next()) {
-//				int a = e.getInt("a");
-//				long b = e.getLong("b");
-//				float c = e.getFloat("c");
-//				double d = e.getDouble("d");
-//				System.out.println(a + "\t" + b + "\t" + c + "\t" + d);
-//			}
-//			e.close();
+			// 14. Error test
+			String qry14_1 = "drop table TEST";
+			String qry14_4 = "drop table TEST2";
+			String qry14_2 = "create table TEST(a int primary key, b long not null, c float not null, d double, e string(1))";
+			String qryFewValue = "insert into TEST(a, b, c) values (1, 2)";
+			String qryTypeNotMatch = "insert into TEST(a, b, c) values (1, 2, 'string')";
+			String qryNeedPrimaryKey = "insert into TEST(a, b, c) values (null, 2, 3)";
+			String qryNeedPrimaryKey2 = "insert into TEST(b, c) values (2, 3)";
+			String qryNeedNotNullValue = "insert into TEST(a, b, c) values (1, null, 3)";
+			String qryNeedNotNullValue2 = "insert into TEST(a, c) values (1, 3)";
+			String qryTooManyPk1 = "create table TEST2(a int primary key, b int, primary key (b))";
+			String qryTooManyPk2 = "create table TEST2(a int, b int, primary key (a, b))";
+			
+			DBManager.plannerOpt().executeUpdate(qry14_1);
+			DBManager.plannerOpt().executeUpdate(qry14_4);
+			DBManager.plannerOpt().executeUpdate(qry14_2);
+//			DBManager.plannerOpt().executeUpdate(qryFewValue);
+//			DBManager.plannerOpt().executeUpdate(qryTypeNotMatch);
+//			DBManager.plannerOpt().executeUpdate(qryNeedPrimaryKey2);
+//			DBManager.plannerOpt().executeUpdate(qryNeedNotNullValue);
+//			DBManager.plannerOpt().executeUpdate(qryNeedNotNullValue2);
+//			DBManager.plannerOpt().executeUpdate(qryTooManyPk1);
+//			DBManager.plannerOpt().executeUpdate(qryTooManyPk2);
+			
+			String qry14_3 = "select * from TEST";
+			p = DBManager.plannerOpt().createQueryPlan(qry14_3);
+			e = p.exec();
+
+			while (e.next())
+				System.out.println(e.getValToString("a") + "\t" + e.getValToString("b"));
+
+			e.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();

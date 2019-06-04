@@ -10,13 +10,23 @@ public class QueryData {
 	private Collection<String> fields;
 	private Collection<String> tables;
 	private Condition cond;
+	private boolean isAll = false; // whether is applies to all fields
 
 	public QueryData(Collection<String> lhstables, Collection<String> fields, Collection<String> tables,
-			Condition cond, boolean isNaturalJoin) {
+			Condition cond) {
 		this.lhstables = lhstables;
 		this.fields = fields;
 		this.tables = tables;
 		this.cond = cond;
+	}
+	
+	public QueryData(Collection<String> lhstables, Collection<String> fields, Collection<String> tables,
+			Condition cond, boolean isNaturalJoin, boolean isAll) {
+		this.lhstables = lhstables;
+		this.fields = fields;
+		this.tables = tables;
+		this.cond = cond;
+		this.isAll = isAll;
 		if (isNaturalJoin)
 			this.cond.addNaturalJoin(tables);
 	}
@@ -35,5 +45,9 @@ public class QueryData {
 
 	public Condition cond() {
 		return cond;
+	}
+	
+	public boolean isAll() {
+		return isAll;
 	}
 }

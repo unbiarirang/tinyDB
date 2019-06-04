@@ -4,11 +4,11 @@ import tinydb.record.Schema;
 
 public class CreateTableData {
 	private String tblname;
-	private Schema sch;
+	private Schema schema;
 
-	public CreateTableData(String tblname, Schema sch) {
+	public CreateTableData(String tblname, Schema schema) {
 		this.tblname = tblname;
-		this.sch = sch;
+		this.schema = schema;
 	}
 
 	public String tableName() {
@@ -16,6 +16,6 @@ public class CreateTableData {
 	}
 
 	public Schema newSchema() {
-		return sch;
+		return schema;
 	}
 }

@@ -115,8 +115,8 @@ public class Condition {
 
 	public Tuple<Collection<String>, Collection<String>> appendFields(Collection<String> tableL,
 			Collection<String> fieldL) {
-		Collection<String> lhstables = new ArrayList<String>(tableL);
-		Collection<String> rhsfields = new ArrayList<String>(fieldL);
+		Collection<String> lhstables = tableL != null ? new ArrayList<String>(tableL) : new ArrayList<String>();
+		Collection<String> rhsfields = fieldL != null ? new ArrayList<String>(fieldL) : new ArrayList<String>();
 		String tblname1, tblname2, fldname1, fldname2;
 		for (Comparison t : terms) {
 			tblname1 = t.getLhsTableName();

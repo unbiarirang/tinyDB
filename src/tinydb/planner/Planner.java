@@ -35,8 +35,14 @@ public class Planner implements PlannerBase {
 	public Plan createPlan(QueryData data) {
 		// Step 1: Create a plan for each mentioned table or view
 		List<Plan> plans = new ArrayList<Plan>();
+		Collection<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
+		
 		for (String tblname : data.tables()) {
-			plans.add(new TablePlan(tblname));
+			TablePlan tp = new TablePlan(tblname);
+			plans.add(tp);
+
+			if (data.isAll())
+				fields.addAll(tp.schema().fields());
 		}
 
 		// Step 2: Create the product of all table plans
@@ -45,10 +51,10 @@ public class Planner implements PlannerBase {
 			p = new ProductPlan(p, nextplan);
 
 		// Step 3: Add a selection plan for the predicate
-		p = new SelectPlan(p, data.cond(), data.lhstables(), data.fields());
+		p = new SelectPlan(p, data.cond(), data.lhstables(), fields);
 
 		// Step 4: Project on the field names
-		p = new ProjectPlan(p, data.fields());
+		p = new ProjectPlan(p, fields);
 		return p;
 	}
 
@@ -119,7 +125,7 @@ public class Planner implements PlannerBase {
 		ue.insert();
 
 		Iterator<Constant> vals = data.vals().iterator();
-		List<String> fields = data.fields();
+		List<String> fields = data.isAll() ? schema.fields() : data.fields();
 
 		if (schema.getPk() != "" && !fields.contains(schema.getPk()))
 			throw new BadSyntaxException("PRIMARY KEY(" + schema.getPk() + ") cannot be null");
