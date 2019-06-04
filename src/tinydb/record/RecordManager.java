@@ -163,7 +163,7 @@ public class RecordManager {
 		rc.moveToId(rid.id());
 	}
 
-	private void moveTo(int b) {
+	public void moveTo(int b) {
 		curblkid = b;
 		Block blk = new Block(filename, curblkid);
 		rc = new Record(tb, blk);

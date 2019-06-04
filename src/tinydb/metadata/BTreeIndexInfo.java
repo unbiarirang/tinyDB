@@ -5,7 +5,7 @@ import static tinydb.file.Page.BLOCK_SIZE;
 import tinydb.server.DBManager;
 import tinydb.record.*;
 import tinydb.index.Index;
-import tinydb.index.btree.*;
+import tinydb.index.bplus.*;
 
 public class BTreeIndexInfo implements IndexInfo {
 	private String idxname, fldname;
@@ -26,7 +26,7 @@ public class BTreeIndexInfo implements IndexInfo {
 	public Index open() {
 		Schema sch = schema();
 		// Create new BTreeIndex for hash indexing
-		return new BTreeIndex(idxname, sch);
+		return new BplusIndex(idxname, sch);
 	}
 
 	public int blocksAccessed() {
@@ -34,7 +34,7 @@ public class BTreeIndexInfo implements IndexInfo {
 		int rpb = BLOCK_SIZE / idxti.recordLength();
 		int numblocks = si.recordsOutput() / rpb;
 		// Call BTreeIndex.searchCost for hash indexing
-		return BTreeIndex.searchCost(numblocks, rpb);
+		return BplusIndex.searchCost(numblocks, rpb);
 	}
 
 	public int recordsOutput() {

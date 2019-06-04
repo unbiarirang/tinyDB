@@ -56,6 +56,9 @@ public class TableManager {
 		rm = new RecordManager(fieldCatalog);
 		for (String fldname : sch.fields()) {
 			rm.insert();
+			if(rm.currentRid().id() == 0) {
+				rm.insert();
+			}
 			rm.setString("tblname", tblname);
 			rm.setString("fldname", fldname);
 			rm.setInt("type", sch.type(fldname));

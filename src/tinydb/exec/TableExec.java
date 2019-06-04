@@ -29,6 +29,10 @@ public class TableExec implements UpdateExec {
 	public void moveToHead() {
 		rm.moveToHead();
 	}
+	
+	public void moveTo(int n) {
+		rm.moveTo(n);
+	}
 
 	public boolean next() {
 		return rm.next();
