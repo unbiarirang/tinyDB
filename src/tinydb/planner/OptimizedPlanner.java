@@ -14,7 +14,7 @@ import tinydb.util.BadSyntaxException;
 import java.util.*;
 
 public class OptimizedPlanner implements PlannerBase {
-	private Collection<TablePlanner> tableplanners = new ArrayList<TablePlanner>();
+	private List<TablePlanner> tableplanners = new ArrayList<TablePlanner>();
 	
 	public OptimizedPlanner() {}
 
@@ -29,7 +29,7 @@ public class OptimizedPlanner implements PlannerBase {
 	}
 	
 	public Plan createPlan(QueryData data) {
-		Collection<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
+		List<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
 
 		// Step 1: Create a TablePlanner object for each mentioned table
 		for (String tblname : data.tables()) {
@@ -122,6 +122,7 @@ public class OptimizedPlanner implements PlannerBase {
 			return 0;
 	}
 
+	// Execute SQL start with SHOW
 	public ArrayList<String> executeShow(String cmd) {
 		Parser parser = new Parser(cmd);
 		Object obj = parser.showCmd();

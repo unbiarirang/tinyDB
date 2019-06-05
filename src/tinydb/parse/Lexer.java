@@ -1,10 +1,9 @@
 package tinydb.parse;
 
 import java.util.*;
+import java.io.*;
 
 import tinydb.util.BadSyntaxException;
-
-import java.io.*;
 
 public class Lexer {
 	private Collection<String> keywords;
@@ -25,7 +24,7 @@ public class Lexer {
 				"natural");
 	}
 
-//Methods to check the status of the current token
+	// Methods to check the status of the current token
 
 	public boolean matchDelim(char d) {
 		return d == (char) tok.ttype;
@@ -55,7 +54,7 @@ public class Lexer {
 		return tok.ttype == StreamTokenizer.TT_WORD && !keywords.contains(tok.sval);
 	}
 
-	//Methods to "eat" the current token
+	// Methods to "eat" the current token
 
 	public void eatDelim(char d) {
 		if (!matchDelim(d))

@@ -15,7 +15,7 @@ public class Parser {
 		lex = new Lexer(s);
 	}
 
-	// Methods for parsing predicates, terms, expressions, constants, and fields
+	// Parse conditions, comparisons, expressions, constants, and fields
 
 	public String field() {
 		return lex.eatId();
@@ -78,7 +78,7 @@ public class Parser {
 		}
 		return cond;
 	}
-	
+
 	public boolean isAll() {
 		if (lex.matchDelim('*')) {
 			lex.eatDelim('*');
@@ -87,21 +87,20 @@ public class Parser {
 		return false;
 	}
 
-// Methods for parsing queries
-
+	// Parse SELECT commands
 	public QueryData query() {
-		Collection<String> tableL = null, fieldL = null;
+		List<String> tableL = null, fieldL = null;
 
 		lex.eatKeyword("select");
 		boolean isAll = isAll(); // whether "select *" or not
-		if (!isAll) {			 // query has fields information
-			Tuple<Collection<String>, Collection<String>> fields = selectList(); // tblname.fldname
+		if (!isAll) { // query has fields information
+			Tuple<List<String>, List<String>> fields = selectList(); // tblname.fldname
 			tableL = fields.x;
 			fieldL = fields.y;
 		}
 		lex.eatKeyword("from");
 
-		Collection<String> tables = tableList();
+		List<String> tables = tableList();
 		Condition cond = new Condition();
 		if (lex.matchKeyword("where")) {
 			lex.eatKeyword("where");
@@ -110,28 +109,29 @@ public class Parser {
 		return new QueryData(tableL, fieldL, tables, cond, false, isAll);
 	}
 
+	// Parse SELECT commands with join
 	public QueryData queryJoin() {
-		Collection<String> tableL = null, fieldL = null;
+		List<String> tableL = null, fieldL = null;
 		boolean isNatural = false;
-		
+
 		lex.eatKeyword("select");
 		boolean isAll = isAll(); // whether "select *" or not
-		if (!isAll) {            // query has fields information
-			Tuple<Collection<String>, Collection<String>> fields = selectList(); // tblname.fldname
+		if (!isAll) { // query has fields information
+			Tuple<List<String>, List<String>> fields = selectList(); // tblname.fldname
 			tableL = fields.x;
 			fieldL = fields.y;
 		}
 		lex.eatKeyword("from");
 
-		Collection<String> tables = tableList();
+		List<String> tables = tableList();
 		Condition cond = new Condition();
-		if (lex.matchKeyword("natural")) {		// NATURAL JOIN
+		if (lex.matchKeyword("natural")) { // NATURAL JOIN
 			isNatural = true;
 			lex.eatKeyword("natural");
 			lex.eatKeyword("join");
 			tables.addAll(tableList());
 		} else {
-			while (lex.matchKeyword("join")) { 	// JOIN or multiple JOIN
+			while (lex.matchKeyword("join")) { // JOIN or multiple JOIN
 				lex.eatKeyword("join");
 				tables.addAll(tableList());
 
@@ -148,9 +148,10 @@ public class Parser {
 		return new QueryData(tableL, fieldL, tables, cond, isNatural, isAll);
 	}
 
-	private Tuple<Collection<String>, Collection<String>> selectList() {
-		Collection<String> tableL = new ArrayList<String>();
-		Collection<String> fieldL = new ArrayList<String>();
+	// Parse table, field, const list
+	private Tuple<List<String>, List<String>> selectList() {
+		List<String> tableL = new ArrayList<String>();
+		List<String> fieldL = new ArrayList<String>();
 		String temp = field();
 		if (lex.matchDelim('.')) { // tbname.fldname
 			lex.eatDelim('.');
@@ -163,15 +164,15 @@ public class Parser {
 
 		if (lex.matchDelim(',')) {
 			lex.eatDelim(',');
-			Tuple<Collection<String>, Collection<String>> fields = selectList();
+			Tuple<List<String>, List<String>> fields = selectList();
 			tableL.addAll(fields.x);
 			fieldL.addAll(fields.y);
 		}
-		return new Tuple<Collection<String>, Collection<String>>(tableL, fieldL);
+		return new Tuple<List<String>, List<String>>(tableL, fieldL);
 	}
 
-	private Collection<String> tableList() {
-		Collection<String> L = new ArrayList<String>();
+	private List<String> tableList() {
+		List<String> L = new ArrayList<String>();
 		L.add(lex.eatId());
 		if (lex.matchDelim(',')) {
 			lex.eatDelim(',');
@@ -180,7 +181,27 @@ public class Parser {
 		return L;
 	}
 
-	// Methods for parsing the various update commands
+	private List<String> fieldList() {
+		List<String> L = new ArrayList<String>();
+		L.add(field());
+		if (lex.matchDelim(',')) {
+			lex.eatDelim(',');
+			L.addAll(fieldList());
+		}
+		return L;
+	}
+
+	private List<Constant> constList() {
+		List<Constant> L = new ArrayList<Constant>();
+		L.add(constant());
+		if (lex.matchDelim(',')) {
+			lex.eatDelim(',');
+			L.addAll(constList());
+		}
+		return L;
+	}
+
+	// Parse various update commands
 
 	public Object updateCmd() {
 		if (lex.matchKeyword("insert"))
@@ -193,8 +214,8 @@ public class Parser {
 			return create();
 		else if (lex.matchKeyword("use"))
 			return use();
-		else if (lex.matchKeyword("show"))
-			return show();
+//		else if (lex.matchKeyword("show"))
+//			return show();
 		else
 			return drop();
 	}
@@ -236,8 +257,7 @@ public class Parser {
 			return dropTable();
 	}
 
-	// Method for parsing delete commands
-
+	// Parse DELETE commands
 	public DeleteData delete() {
 		lex.eatKeyword("delete");
 		lex.eatKeyword("from");
@@ -250,23 +270,22 @@ public class Parser {
 		return new DeleteData(tblname, cond);
 	}
 
-	// Methods for parsing insert commands
-
+	// Parse INSERT commands
 	public InsertData insert() {
 		boolean isAll = false;
 		List<String> flds = null;
-		
+
 		lex.eatKeyword("insert");
 		lex.eatKeyword("into");
 		String tblname = lex.eatId();
 
-		if (lex.matchDelim('(')) {	// query has field information
+		if (lex.matchDelim('(')) { // query has field information
 			lex.eatDelim('(');
 			flds = fieldList();
 			lex.eatDelim(')');
-		} else							// means all fields
+		} else // means all fields
 			isAll = true;
-		
+
 		lex.eatKeyword("values");
 		lex.eatDelim('(');
 		List<Constant> vals = constList();
@@ -274,28 +293,7 @@ public class Parser {
 		return new InsertData(tblname, flds, vals, isAll);
 	}
 
-	private List<String> fieldList() {
-		List<String> L = new ArrayList<String>();
-		L.add(field());
-		if (lex.matchDelim(',')) {
-			lex.eatDelim(',');
-			L.addAll(fieldList());
-		}
-		return L;
-	}
-
-	private List<Constant> constList() {
-		List<Constant> L = new ArrayList<Constant>();
-		L.add(constant());
-		if (lex.matchDelim(',')) {
-			lex.eatDelim(',');
-			L.addAll(constList());
-		}
-		return L;
-	}
-
-	// Method for parsing modify commands
-
+	// Parse MODIFY commands
 	public ModifyData modify() {
 		lex.eatKeyword("update");
 		String tblname = lex.eatId();
@@ -311,8 +309,7 @@ public class Parser {
 		return new ModifyData(tblname, fldname, newval, cond);
 	}
 
-	// Method for parsing create table commands
-
+	// Parse CREATE TABLE commands
 	public CreateTableData createTable() {
 		lex.eatKeyword("table");
 		String tblname = lex.eatId();
@@ -323,6 +320,8 @@ public class Parser {
 		lex.eatDelim(')');
 		return new CreateTableData(tblname, sch);
 	}
+
+	// Parse table schema (fields definition)
 
 	private Schema fieldDefs() {
 		Schema schema = fieldDef();
@@ -409,8 +408,7 @@ public class Parser {
 		return schema;
 	}
 
-	//  Method for parsing create index commands
-
+	// Parse CREATE INDEX commands
 	public CreateIndexData createIndex() {
 		lex.eatKeyword("index");
 		String idxname = lex.eatId();
@@ -421,6 +419,8 @@ public class Parser {
 		lex.eatDelim(')');
 		return new CreateIndexData(idxname, tblname, fldname);
 	}
+
+	// Parse CREATE, USE, DROP, SHOW DATABASE commands
 
 	public String createUseDatabase() {
 		lex.eatKeyword("database");
@@ -446,6 +446,7 @@ public class Parser {
 		return new ShowTablesData(dbname);
 	}
 
+	// Parse SHOW DATABASES commands
 	public void showDatabases() {
 		lex.eatKeyword("databases");
 	}

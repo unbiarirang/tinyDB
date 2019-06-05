@@ -1,9 +1,8 @@
 package tinydb.planner;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import tinydb.server.DBManager;
@@ -35,7 +34,7 @@ public class Planner implements PlannerBase {
 	public Plan createPlan(QueryData data) {
 		// Step 1: Create a plan for each mentioned table or view
 		List<Plan> plans = new ArrayList<Plan>();
-		Collection<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
+		List<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
 		
 		for (String tblname : data.tables()) {
 			TablePlan tp = new TablePlan(tblname);
