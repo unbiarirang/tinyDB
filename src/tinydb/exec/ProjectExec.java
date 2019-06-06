@@ -10,16 +10,31 @@ public class ProjectExec implements Exec {
 	private Exec e;
 	private ArrayList<String> tablelist;
 	private ArrayList<String> fieldlist;
+	private ArrayList<String> resfieldlist; // fields to return as results
 
 	public ProjectExec(Exec e, List<String> fieldlist) {
 		this.e = e;
 		this.fieldlist = (ArrayList<String>) fieldlist;
+		this.resfieldlist = this.fieldlist;
 	}
 
-	public ProjectExec(Exec e, List<String> tablelist, List<String> fieldlist) {
+	public ProjectExec(Exec e, List<String> tablelist, List<String> fieldlist,
+			List<String> resfieldlist) {
 		this.e = e;
 		this.tablelist = (ArrayList<String>) tablelist;
 		this.fieldlist = (ArrayList<String>) fieldlist;
+		this.resfieldlist = (ArrayList<String>) resfieldlist;
+	}
+	
+	public String tables() {
+		if (tablelist != null)
+			return tablelist.subList(0, resfieldlist.size()).toString();
+		
+		return null;
+	}
+	
+	public String fields() {
+		return resfieldlist.toString();
 	}
 
 	// Exec methods //
@@ -47,6 +62,27 @@ public class ProjectExec implements Exec {
 			throw new RuntimeException("field " + fldname + " not found.");
 	}
 	
+	public String getAllVal() throws Exception {
+		if (tablelist != null)
+			return e.getAllVal(tablelist, resfieldlist);
+
+		try {
+			return e.getAllVal(resfieldlist);
+		} catch (Exception ex) {
+			return e.getAllVal();
+		}
+	}
+	
+	// Error
+	public String getAllVal(ArrayList<String> fieldlist) throws Exception {
+		throw new Exception("Not implemented!");
+	}
+	
+	// Error
+	public String getAllVal(ArrayList<String> tablelist, ArrayList<String> fieldlist) throws Exception {
+		throw new Exception("Not implemented!");
+	}
+
 	public String getValToString(String fldname) {
 		Tuple<String, String> attr = splitTableField(fldname);
 		String tblname = attr.x;
@@ -117,11 +153,15 @@ public class ProjectExec implements Exec {
 		return fieldlist.contains(fldname);
 	}
 
-	public boolean hasField(String tblname, String fldname) {
+	public boolean hasField(String fldname, String tblname) {
 		if (tblname == "")
 			return fieldlist.contains(fldname);
 		else
 			return fieldlist.contains(fldname) && tablelist.get(fieldlist.indexOf(fldname)).contentEquals(tblname);
+	}
+	
+	public boolean hasTable(String tblname) {
+		return tablelist.contains(tblname);
 	}
 
 	private Tuple<String, String> splitTableField(String fldname) {

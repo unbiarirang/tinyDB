@@ -105,6 +105,12 @@ public class Lexer {
 			throw new BadSyntaxException();
 		String s = tok.sval;
 		nextToken();
+		if (matchDelim('_')) { // string contains "_" delimiter
+			s += "_";
+			nextToken();
+			s += tok.sval;
+			nextToken();
+		}
 		return s;
 	}
 

@@ -1,5 +1,7 @@
 package tinydb.exec;
 
+import java.util.ArrayList;
+
 import tinydb.exec.consts.Constant;
 import tinydb.exec.expr.Condition;
 import tinydb.record.*;
@@ -35,6 +37,18 @@ public class SelectExec implements UpdateExec {
 		return e.getVal(fldname);
 	}
 	
+	public String getAllVal() throws Exception {
+		return e.getAllVal();
+	}
+	
+	public String getAllVal(ArrayList<String> fieldlist) throws Exception {
+		return e.getAllVal(fieldlist);
+	}
+	
+	public String getAllVal(ArrayList<String> tablelist, ArrayList<String> fieldlist) throws Exception {
+		return e.getAllVal(tablelist, fieldlist);
+	}
+
 	public String getValToString(String fldname) {
 		return e.getValToString(fldname);
 	}
@@ -65,6 +79,10 @@ public class SelectExec implements UpdateExec {
 	
 	public boolean hasField(String fldname, String tblname) {
 		return e.hasField(fldname, tblname);
+	}
+	
+	public boolean hasTable(String tblname) {
+		return e.hasTable(tblname);
 	}
 
 	// UpdateExec methods

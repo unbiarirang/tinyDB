@@ -9,6 +9,7 @@ import java.net.Socket;
 
 import tinydb.plan.Plan;
 import tinydb.exec.Exec;
+import tinydb.exec.ProjectExec;
 import tinydb.util.Tuple;
 import tinydb.util.Utils;
 
@@ -86,19 +87,7 @@ public class Main {
 				
 			case "select":
 				p = DBManager.plannerOpt().createQueryPlan(cmd);
-				e = p.exec();
-				ArrayList<String> getField = p.schema().fields();
-				String contents = "select " + String.valueOf(getField.size()) + " ";
-				for(int i = 0; i < getField.size(); i++) {
-					contents = contents + getField.get(i) + "\n";
-				}
-				while(e.next()) {
-					for(int i = 0; i < getField.size(); i++) {
-						contents = contents + e.getValToString(getField.get(i)) + "\n";
-					}
-					System.out.println(">>>>>\t" + contents);
-				}
-				output.write(contents.getBytes());
+				execPlan(p);
 				break;
 					// executeShow SQL
 			case "show":
@@ -107,7 +96,23 @@ public class Main {
 		}
 		if(!fstCmd.equals("login") && !fstCmd.equals("select"))
 			output.write("completed".getBytes());
-	}		
+	}
+	private static void execPlan(Plan p) throws Exception {
+		Exec e;
+		String contents = "select";
+		e = p.exec();
+		String tables = ((ProjectExec) e).tables();
+		String fields = ((ProjectExec) e).fields();
+		contents = contents + "\n" + tables + "\n" + fields + "\n";
+		
+		while (e.next()) {
+			String res = e.getAllVal();
+			contents = contents + res + "\n";
+			System.out.println(">>>>>\t" + res);
+		}
+		output.write(contents.getBytes());
+		e.close();
+	}
 }
 
 //		String dbname1 = "test1";

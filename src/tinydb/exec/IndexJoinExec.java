@@ -1,11 +1,14 @@
 package tinydb.exec;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import tinydb.exec.consts.Constant;
 import tinydb.index.Index;
 
 public class IndexJoinExec implements Exec {
 	private Exec e;
-	private TableExec te; // the data table
+	private TableExec te;
 	private Index idx;
 	private String joinfield;
 
@@ -53,6 +56,44 @@ public class IndexJoinExec implements Exec {
 			return e.getVal(fldname);
 	}
 	
+	public Constant getValWithTable(String fldname, String tblname) {
+		if (te.hasField(fldname, tblname))
+			return te.getVal(fldname);
+		else
+			return e.getVal(fldname);
+	}
+
+	public String getAllVal() throws Exception {
+		return te.getAllVal() + e.getAllVal();
+	}
+
+	public String getAllVal(ArrayList<String> fieldlist) {
+		String res = "";
+		for (String fldname : fieldlist) {
+			if (te.hasField(fldname))
+				res += te.getValToString(fldname) + " ";
+			else
+				res += e.getValToString(fldname) + " ";
+		}
+		return res;
+	}
+
+	public String getAllVal(ArrayList<String> tablelist, ArrayList<String> fieldlist) throws Exception {
+		Iterator<String> it1 = tablelist.iterator();
+		Iterator<String> it2 = fieldlist.iterator();
+
+		String res = "";
+		while (it1.hasNext() && it2.hasNext()) {
+		    String tblname = it1.next();
+		    String fldname = it2.next();
+		    if (te.hasTable(tblname) && te.hasField(fldname))
+		    	res += te.getValToString(fldname) + " ";
+		    else
+		    	res += e.getValToString(fldname) + " ";
+		}
+		return res;
+	}
+
 	public String getValToString(String fldname) {
 		if (te.hasField(fldname))
 			return te.getValToString(fldname);
@@ -98,9 +139,13 @@ public class IndexJoinExec implements Exec {
 	public boolean hasField(String fldname) {
 		return te.hasField(fldname) || e.hasField(fldname);
 	}
-	
+
 	public boolean hasField(String fldname, String tblname) {
 		return te.hasField(fldname, tblname);
+	}
+	
+	public boolean hasTable(String tblname) {
+		return te.hasTable(tblname);
 	}
 
 	private void resetIndex() {

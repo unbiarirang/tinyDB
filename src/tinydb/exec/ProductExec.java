@@ -1,5 +1,8 @@
 package tinydb.exec;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import tinydb.exec.consts.Constant;
 
 public class ProductExec implements Exec {
@@ -41,18 +44,42 @@ public class ProductExec implements Exec {
 			return e2.getVal(fldname);
 	}
 	
-	public String getValToString(String fldname) {
-		if (e1.hasField(fldname))
-			return e1.getValToString(fldname);
-		else
-			return e2.getValToString(fldname);
-	}
-	
 	public Constant getValWithTable(String fldname, String tblname) {
 		if (e1.hasField(fldname, tblname))
 			return e1.getVal(fldname);
 		else
 			return e2.getVal(fldname);
+	}
+	
+	public String getAllVal() throws Exception {
+		return e1.getAllVal() + e2.getAllVal();
+	}
+	
+	public String getAllVal(ArrayList<String> fieldlist) throws Exception {
+		return e1.getAllVal(fieldlist);
+	}
+
+	public String getAllVal(ArrayList<String> tablelist, ArrayList<String> fieldlist) throws Exception {
+		Iterator<String> it1 = tablelist.iterator();
+		Iterator<String> it2 = fieldlist.iterator();
+
+		String res = "";
+		while (it1.hasNext() && it2.hasNext()) {
+		    String tblname = it1.next();
+		    String fldname = it2.next();
+		    if (e1.hasTable(tblname) && e1.hasField(fldname))
+		    	res += e1.getValToString(fldname) + " ";
+		    else
+		    	res += e2.getValToString(fldname) + " ";
+		}
+		return res;
+	}
+	
+	public String getValToString(String fldname) {
+		if (e1.hasField(fldname))
+			return e1.getValToString(fldname);
+		else
+			return e2.getValToString(fldname);
 	}
 
 	public int getInt(String fldname) {
@@ -96,5 +123,9 @@ public class ProductExec implements Exec {
 	
 	public boolean hasField(String fldname, String tblname) {
 		return e1.hasField(fldname, tblname) || e2.hasField(fldname, tblname);
+	}
+	
+	public boolean hasTable(String tblname) {
+		return e1.hasTable(tblname) || e2.hasTable(tblname);
 	}
 }

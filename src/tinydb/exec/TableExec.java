@@ -55,6 +55,27 @@ public class TableExec implements UpdateExec {
 			return new StringConstant(rm.getString(fldname));
 	}
 	
+	public String getAllVal() {
+		String res = "";
+		for (String fldname : sch.fields())
+			res += getValToString(fldname) + " ";
+		
+		return res;
+	}
+	
+	public String getAllVal(ArrayList<String> fieldlist) {
+		String res = "";
+		for (String fldname : fieldlist)
+			res += getValToString(fldname) + " ";
+		
+		return res;
+	}
+
+	// Error
+	public String getAllVal(ArrayList<String> tablelist, ArrayList<String> fieldlist) throws Exception {
+		throw new Exception("Not implemented!");
+	}
+	
 	public String getValToString(String fldname) {
 		if (rm.isNull(fldname)) // null
 			return "null";
@@ -96,7 +117,11 @@ public class TableExec implements UpdateExec {
 	}
 	
 	public boolean hasField(String fldname, String tblname) {
-		return sch.hasField(fldname) && getTableName().contentEquals(tblname);
+		return sch.hasField(fldname) && hasTable(tblname);
+	}
+	
+	public boolean hasTable(String tblname) {
+		return getTableName().contentEquals(tblname);
 	}
 
 	// UpdateExec methods //

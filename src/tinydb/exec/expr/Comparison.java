@@ -71,17 +71,30 @@ public class Comparison {
 		String tblname1 = getLhsTableName();
 		String tblname2 = getRhsTableName();
 		Constant lhsval, rhsval;
-		if (tblname1 != null && tblname2 != null && tblname1 != "" && tblname2 != null
-				&& !lhs.getFieldName().contentEquals(rhs.getFieldName())) {
-			lhsval = lhs.evaluateWithTable(e, getLhsTableName());
-			rhsval = rhs.evaluateWithTable(e, getRhsTableName());
+
+		// e.g. tblname1.fldname1 = tblname2.fldname2
+		if (tblname1 != null && tblname2 != null && tblname1 != "" && tblname2 != null) {
+				//&& !lhs.getFieldName().contentEquals(rhs.getFieldName())) {
+			lhsval = lhs.evaluateWithTable(e, tblname1);
+			rhsval = rhs.evaluateWithTable(e, tblname2);
 		}
+		// e.g. tblname.fldname = 1
+		else if (tblname1 != null && (tblname2 == null || tblname2 == "") && tblname1 != "") {
+			lhsval = lhs.evaluateWithTable(e, tblname1);
+			rhsval = rhs.evaluate(e);
+		}
+		else if (tblname2 != null && (tblname1 == null || tblname1 == "") && tblname2 != "") {
+			lhsval = lhs.evaluate(e);
+			rhsval = rhs.evaluateWithTable(e, tblname2);
+		}
+		// e.g. fldname1 = fldname2 or fldname = 1
 		else {
 			lhsval = lhs.evaluate(e);
 			rhsval = rhs.evaluate(e);
 		}
 		
-		if (lhsval == null || rhsval == null) return false;
+		if (lhsval == null) lhsval = lhs.evaluate(e);
+		if (rhsval == null) rhsval = rhs.evaluate(e);
 		
 		switch (relation) {
 		case ">":

@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -199,6 +201,7 @@ public class Swing {
 						try {
 							output.write(extract.getBytes());
 							input.read(recvbuffer);
+							System.out.println("here0!!!" + cmd);
 							ifSelect((new String(recvbuffer)));
 //							System.out.println((new String(recvbuffer)));
 						} catch (IOException e1) {
@@ -221,47 +224,55 @@ public class Swing {
 		
 		ResultPanel.removeAll();
 		Vector columnNames = new Vector();
-		int columnNum = 0;
-		for(int i = 0; i < cmd.length(); i++) {
-			if(cmd.charAt(i) == ' ') {
-				columnNum = Integer.parseInt(cmd.substring(0, i));
-				cmd = cmd.substring(i, cmd.length());
-				break;
-			}
-		}
+		String tableinfo = null;
+		String fields = null;
 		int fst = 0;
 		int cnt = 0;
 		for(int i = 0; i < cmd.length(); i++) {
-			if (cmd.charAt(i) == '\n') {
+			if(cmd.charAt(i) == '\n') {
 				cnt++;
-				String test = cmd.substring(fst + 1, i);
-				columnNames.add(cmd.substring(fst + 1, i));
-				fst = i;
-				if(cnt == columnNum) {
-					cmd = cmd.substring(fst + 1, cmd.length());
+				if(cnt == 1) {
+					tableinfo = cmd.substring(fst, i);
+					fst = i + 1;
+				}
+				else if(cnt == 2) {
+					fields = cmd.substring(fst, i);
+					fst = i + 1;
+					if(!tableinfo.equals("null")) {
+						List<String> tmptable = Arrays.asList(tableinfo.substring(1, tableinfo.length() - 1).split(","));
+						List<String> tmpfields = Arrays.asList(fields.substring(1, fields.length() - 1).split(","));
+						for(int j = 0; j < tmptable.size(); j++) {
+							columnNames.add(tmptable.get(j) + "." + tmpfields.get(j));
+						}
+					}
+					else {
+						List<String> tmpfields = Arrays.asList(fields.substring(1, fields.length() - 1).split(","));
+						for(int j = 0; j < tmpfields.size(); j++) {
+							columnNames.add(tmpfields.get(j));
+						}
+					}
+					cmd = cmd.substring(fst, cmd.length() - 1);
 					break;
 				}
 			}
 		}
-		Vector rowData = new Vector();
-	
 		fst = 0;
-		cnt = 0;
+		Vector rowData = new Vector();
 		Vector Data = new Vector();
 		for(int i = 0; i < cmd.length(); i++) {
-			if(cmd.charAt(i) == '\n') {
+			if(cmd.charAt(i) == ' ') {
 				String test = cmd.substring(fst, i);
 				Data.add(cmd.substring(fst, i));
 				fst = i + 1;
-				cnt++;
-				if(cnt == columnNum){
-					rowData.add(Data.clone());
-					cnt = 0;
-					Data.clear();
-				}
+			}
+			else if(cmd.charAt(i) == '\n') {
+				rowData.add(Data.clone());
+				cnt = 0;
+				fst = fst + 1;
+				Data.clear();
 			}
 		}
-		
+				
 		JTable table = new JTable(rowData, columnNames);
 		DefaultTableModel tableModel = new DefaultTableModel(rowData, columnNames) {
 
