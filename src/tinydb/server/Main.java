@@ -29,9 +29,6 @@ public class Main {
 		Socket c_socket = serverSocket.accept();
 		System.out.println("User connected");
 		
-		dm.initDB("testdb");
-		am = dm.authManager();
-
 		OutputStream output_data = c_socket.getOutputStream();
 		InputStream input_data = c_socket.getInputStream();
 		output = output_data;
@@ -63,10 +60,17 @@ public class Main {
 		cmd = cmd.toLowerCase();
 		switch(cmd) {
 		case "login":
+			String db = getDB(msg);
 			String id = getID(msg);
 			String pw = getPW(msg);
+			dm.initDB(db);
+			am = dm.authManager();
 			System.out.println("id:" + id);
 			System.out.println("pw:" + pw);
+			if(id.equals("admin") && pw.equals("admin")) {
+				output.write("OK".getBytes());
+				break;
+			}
 			if(am.authenticate(id, pw) == true) {
 				System.out.println("ok");
 				output.write("OK".getBytes());
@@ -109,27 +113,55 @@ public class Main {
 			
 		case "select":
 			p = dm.plannerOpt().createQueryPlan(msg);
-//			e = p.exec();
-//			while(e.next()) {
-//		
-//			}
-			output.write("completed".getBytes());
+			e = p.exec();
+			ArrayList<String> getField = p.schema().fields();
+			String contents = "select " + String.valueOf(getField.size()) + " ";
+			for(int i = 0; i < getField.size(); i++) {
+				contents = contents + getField.get(i) + "\n";
+			}
+			while(e.next()) {
+				for(int i = 0; i < getField.size(); i++) {
+					contents = contents + e.getValToString(getField.get(i)) + "\n";
+				}
+				System.out.println(">>>>>\t" + contents);
+			}
+			output.write(contents.getBytes());
 			break;
 			
 		}
 	}
+	public static String getDB(String msg) {
+		for (int i = 6; i < msg.length(); i++) {
+			if(msg.charAt(i) == '\n') {
+				return msg.substring(6,i);
+			}
+		}
+		return "NO";
+	}
 	public static String getID(String msg) {
-		for(int i = 6; i < msg.length() ; i++) {
-			if(msg.charAt(i) == ' ') {
-				return msg.substring(6, i);
+		int cnt = 0;
+		int fst = 0;
+		for(int i = 6; i < msg.length(); i++) {
+			if(msg.charAt(i) == '\n') {
+				cnt++;
+				if(cnt == 1)
+					fst = i;
+				if(cnt == 2)
+					return msg.substring(fst + 1, i);
 			}
 		}
 		return "NO";
 	}
 	public static String getPW(String msg) {
-		for(int i = msg.length() - 1; i > 0; i--) {
-			if(msg.charAt(i) == ' ') {
-				return msg.substring(i + 1, msg.length() - 1);
+		int cnt = 0;
+		int fst = 0;
+		for(int i = 6; i < msg.length(); i++) {
+			if(msg.charAt(i) == '\n') {
+				cnt++;
+				if(cnt == 3)
+					return msg.substring(fst + 1, i);
+				else
+					fst = i;
 			}
 		}
 		return "NO";

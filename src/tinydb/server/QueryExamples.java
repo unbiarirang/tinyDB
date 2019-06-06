@@ -27,7 +27,7 @@ public class QueryExamples {
 			String qry1_2 = "create table TEST(a int primary key, b long not null, c float)";
 			//String qry1_2 = "create table TEST(a int, b long not null, c float, primary key(a))";
 			String qry1_3 = "insert into TEST values (1, 111111111, 1.0)";
-			String qry1_4 = "insert into TEST values (2, 222222222, 2.0)";
+			String qry1_4 = "insert into TEST values (1, 222222222, 2.0)";
 			String qry1_5 = "insert into TEST values (3, 333333333, 3.0)";
 			String qry1_6 = "insert into TEST values (4, 444444444, 4.0)";
 			String qry1_7 = "insert into TEST values (5, 555555555, null)";

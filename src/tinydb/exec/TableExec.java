@@ -107,8 +107,9 @@ public class TableExec implements UpdateExec {
 		}
 
 		// Check if primary key value is duplicated
-		if (sch.getPk().contentEquals(fldname) && rm.isValExist(fldname, val.value()))
+		if (sch.getPk().contentEquals(fldname) && rm.isValExist(fldname, val.value())) {
 			throw new DuplicatedException("The primary key value is duplicated");
+		}
 
 		try {
 			if (sch.type(fldname) == INTEGER)
