@@ -74,6 +74,10 @@ public class DBManager {
 	public static ArrayList<String> showTableFields(ShowTableData obj) {
 		return mm.getTableFields(obj.tblName());
 	}
+	
+	public static ArrayList<String> showTableFields(String tblname) {
+		return mm.getTableFields(tblname);
+	}
 
 	public static ArrayList<String> showDatabaseTables(ShowDatabaseData obj) {
 		String oldname = mm.dbname();
@@ -121,9 +125,9 @@ public class DBManager {
 		String username = obj.username();
 		String tblname  = obj.tblname();
 		String privilege   = obj.privilege();
-		String role = String.join(" ", username, mm.dbname(), tblname, privilege);
-		am.addUserRole(role);
-		fm.recordUserRole(role);
+		privilege = String.join(" ", username, mm.dbname(), tblname, privilege);
+		am.addUserPrivilege(privilege);
+		fm.recordUserPrivilege(privilege);
 		return 1;
 	}
 
@@ -131,9 +135,9 @@ public class DBManager {
 		String username = obj.username();
 		String tblname  = obj.tblname();
 		String privilege   = obj.privilege();
-		String role = String.join(" ", username, mm.dbname(), tblname, privilege);
-		am.removeUserRole(role);
-		fm.deleteUserRole(role);
+		privilege = String.join(" ", username, mm.dbname(), tblname, privilege);
+		am.removeUserPrivilege(privilege);
+		fm.deleteUserPrivilege(privilege);
 		return 1;
 	}
 

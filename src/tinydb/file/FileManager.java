@@ -241,8 +241,8 @@ public class FileManager {
 		}
 	}
 
-	public void recordUserRole(String role) {
-		recordUserInfo(role);
+	public void recordUserPrivilege(String privilege) {
+		recordUserInfo(privilege);
 	}	
 
 	public void recordPasswordInfo(String username, String salt, String pwhash) {
@@ -350,8 +350,8 @@ public class FileManager {
 		}
 	}
 	
-	public void deleteUserRole(String role) {
-		deleteUserInfo(role);
+	public void deleteUserPrivilege(String privilege) {
+		deleteUserInfo(privilege);
 	}
 	
 	public void deletePasswordInfo(String username, String salt, String pwhash) {

@@ -11,6 +11,7 @@ public class TableManager {
 
 	private Table tableCatalog; // Metadata of all tables in the database
 	private Table fieldCatalog; // Metadata of all fields of all tables in the database
+	private ArrayList<String> tblnames = null;
 
 	public TableManager(boolean isNew) {
 		Schema tcatSchema = new Schema();
@@ -98,6 +99,8 @@ public class TableManager {
 	}
 
 	public ArrayList<String> getTableNames() {
+		if (tblnames != null) return tblnames;
+
 		ArrayList<String> tblnames = new ArrayList<String>();
 		RecordManager rm = new RecordManager(tableCatalog);
 
@@ -127,5 +130,7 @@ public class TableManager {
 		rm = new RecordManager(fieldCatalog);
 		rm.deleteAll("tblname", tblname);
 		rm.close();
+		
+		tblnames = null;
 	}
 }

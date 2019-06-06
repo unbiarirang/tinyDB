@@ -313,10 +313,25 @@ public class Parser {
 		String privilege = null;
 
 		try {
-			privilege = lex.eatId();
-		} catch (BadSyntaxException e) {
 			lex.eatDelim('*');
 			privilege = "*";
+		} catch (BadSyntaxException e) {
+			if (lex.matchKeyword("select")) {
+				lex.eatKeyword("select");
+				privilege = "select";
+			}
+			else if (lex.matchKeyword("update")) {
+				lex.eatKeyword("update");
+				privilege = "update";
+			}
+			else if (lex.matchKeyword("insert")) {
+				lex.eatKeyword("inert");
+				privilege = "inert";
+			}
+			else if (lex.matchKeyword("delete")) {
+				lex.eatKeyword("delete");
+				privilege = "delete";
+			}
 		}
 		lex.eatKeyword("on");
 		lex.eatKeyword("table");
@@ -332,10 +347,25 @@ public class Parser {
 		String privilege = null;
 
 		try {
-			privilege = lex.eatId();
-		} catch (BadSyntaxException e) {
 			lex.eatDelim('*');
 			privilege = "*";
+		} catch (BadSyntaxException e) {
+			if (lex.matchKeyword("select")) {
+				lex.eatKeyword("select");
+				privilege = "select";
+			}
+			else if (lex.matchKeyword("update")) {
+				lex.eatKeyword("update");
+				privilege = "update";
+			}
+			else if (lex.matchKeyword("insert")) {
+				lex.eatKeyword("inert");
+				privilege = "inert";
+			}
+			else if (lex.matchKeyword("delete")) {
+				lex.eatKeyword("delete");
+				privilege = "delete";
+			}
 		}
 		lex.eatKeyword("on");
 		lex.eatKeyword("table");
