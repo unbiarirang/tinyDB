@@ -209,13 +209,15 @@ public class Parser {
 		else if (lex.matchKeyword("delete"))
 			return delete();
 		else if (lex.matchKeyword("update"))
-			return modify();
+			return update();
 		else if (lex.matchKeyword("create"))
 			return create();
 		else if (lex.matchKeyword("use"))
 			return use();
-//		else if (lex.matchKeyword("show"))
-//			return show();
+		else if (lex.matchKeyword("grant"))
+			return grant();
+		else if (lex.matchKeyword("revoke"))
+			return revoke();
 		else
 			return drop();
 	}
@@ -224,24 +226,11 @@ public class Parser {
 		return show();
 	}
 
-	private Object create() {
-		lex.eatKeyword("create");
-		if (lex.matchKeyword("table"))
-			return createTable();
-		else if (lex.matchKeyword("database"))
-			return createUseDatabase();
-		else
-			return createIndex();
-	}
-
-	private Object use() {
-		lex.eatKeyword("use");
-		return createUseDatabase();
-	}
-
 	private Object show() {
 		lex.eatKeyword("show");
-		if (lex.matchKeyword("database"))
+		if (lex.matchKeyword("table"))
+			return showTableFields();
+		else if (lex.matchKeyword("database"))
 			return showDatabaseTables();
 		else {
 			showDatabases();
@@ -249,26 +238,6 @@ public class Parser {
 		}
 	}
 
-	private Object drop() {
-		lex.eatKeyword("drop");
-		if (lex.matchKeyword("database"))
-			return dropDatabase();
-		else
-			return dropTable();
-	}
-
-	// Parse DELETE commands
-	public DeleteData delete() {
-		lex.eatKeyword("delete");
-		lex.eatKeyword("from");
-		String tblname = lex.eatId();
-		Condition cond = new Condition();
-		if (lex.matchKeyword("where")) {
-			lex.eatKeyword("where");
-			cond = condition();
-		}
-		return new DeleteData(tblname, cond);
-	}
 
 	// Parse INSERT commands
 	public InsertData insert() {
@@ -292,9 +261,22 @@ public class Parser {
 		lex.eatDelim(')');
 		return new InsertData(tblname, flds, vals, isAll);
 	}
+	
+	// Parse DELETE commands
+	public DeleteData delete() {
+		lex.eatKeyword("delete");
+		lex.eatKeyword("from");
+		String tblname = lex.eatId();
+		Condition cond = new Condition();
+		if (lex.matchKeyword("where")) {
+			lex.eatKeyword("where");
+			cond = condition();
+		}
+		return new DeleteData(tblname, cond);
+	}
 
-	// Parse MODIFY commands
-	public ModifyData modify() {
+	// Parse UPDATE commands
+	public ModifyData update() {
 		lex.eatKeyword("update");
 		String tblname = lex.eatId();
 		lex.eatKeyword("set");
@@ -307,6 +289,71 @@ public class Parser {
 			cond = condition();
 		}
 		return new ModifyData(tblname, fldname, newval, cond);
+	}
+	
+	private Object create() {
+		lex.eatKeyword("create");
+		if (lex.matchKeyword("table"))
+			return createTable();
+		else if (lex.matchKeyword("database"))
+			return createUseDatabase();
+		else if (lex.matchKeyword("user"))
+			return createUser();
+		else
+			return createIndex();
+	}
+
+	private Object use() {
+		lex.eatKeyword("use");
+		return createUseDatabase();
+	}
+
+	private Object grant() {
+		lex.eatKeyword("grant");
+		String privilege = null;
+
+		try {
+			privilege = lex.eatId();
+		} catch (BadSyntaxException e) {
+			lex.eatDelim('*');
+			privilege = "*";
+		}
+		lex.eatKeyword("on");
+		lex.eatKeyword("table");
+		String tblname = lex.eatId();
+		lex.eatKeyword("to");
+		String username = lex.eatId();
+
+		return new GrantPrivilegeData(privilege, tblname, username);
+	}
+
+	private Object revoke() {
+		lex.eatKeyword("revoke");
+		String privilege = null;
+
+		try {
+			privilege = lex.eatId();
+		} catch (BadSyntaxException e) {
+			lex.eatDelim('*');
+			privilege = "*";
+		}
+		lex.eatKeyword("on");
+		lex.eatKeyword("table");
+		String tblname = lex.eatId();
+		lex.eatKeyword("from");
+		String username = lex.eatId();
+		
+		return new RevokePrivilegeData(privilege, tblname, username);
+	}
+
+	private Object drop() {
+		lex.eatKeyword("drop");
+		if (lex.matchKeyword("database"))
+			return dropDatabase();
+		else if (lex.matchKeyword("user"))
+			return dropUser();
+		else
+			return dropTable();
 	}
 
 	// Parse CREATE TABLE commands
@@ -380,25 +427,25 @@ public class Parser {
 
 	private Schema fieldType(String fldname) {
 		Schema schema = new Schema();
-		if (lex.matchKeyword("int")) { // INT
+		if (lex.matchKeyword("int")) { 				// INT
 			lex.eatKeyword("int");
 			schema.addIntField(fldname, isNotNull(), isPk(schema));
-		} else if (lex.matchKeyword("long")) { // LONG
+		} else if (lex.matchKeyword("long")) { 		// LONG
 			lex.eatKeyword("long");
 			schema.addLongField(fldname, isNotNull(), isPk(schema));
-		} else if (lex.matchKeyword("float")) { // FLOAT
+		} else if (lex.matchKeyword("float")) { 	// FLOAT
 			lex.eatKeyword("float");
 			schema.addFloatField(fldname, isNotNull(), isPk(schema));
-		} else if (lex.matchKeyword("double")) { // DOUBLE
+		} else if (lex.matchKeyword("double")) { 	// DOUBLE
 			lex.eatKeyword("double");
 			schema.addDoubleField(fldname, isNotNull(), isPk(schema));
-		} else if (lex.matchKeyword("varchar")) { // VARCHAR
+		} else if (lex.matchKeyword("varchar")) { 	// VARCHAR
 			lex.eatKeyword("varchar");
 			lex.eatDelim('(');
 			int strLen = lex.eatIntConstant();
 			lex.eatDelim(')');
 			schema.addStringField(fldname, strLen, isNotNull(), isPk(schema));
-		} else if (lex.matchKeyword("string")) { // STRING
+		} else if (lex.matchKeyword("string")) {	// STRING
 			lex.eatKeyword("string");
 			lex.eatDelim('(');
 			int strLen = lex.eatIntConstant();
@@ -406,6 +453,15 @@ public class Parser {
 			schema.addStringField(fldname, strLen, isNotNull(), isPk(schema));
 		}
 		return schema;
+	}
+	
+	// Parse CREATE USER commands
+	public CreateUserData createUser() {
+		lex.eatKeyword("user");
+		String username = lex.eatId();
+		lex.eatKeyword("password");
+		String userpw = lex.eatId();
+		return new CreateUserData(username, userpw);
 	}
 
 	// Parse CREATE INDEX commands
@@ -420,30 +476,46 @@ public class Parser {
 		return new CreateIndexData(idxname, tblname, fldname);
 	}
 
-	// Parse CREATE, USE, DROP, SHOW DATABASE commands
-
+	// Parse CREATE DATABASE and USE DATABASE commands
 	public String createUseDatabase() {
 		lex.eatKeyword("database");
 		String dbname = lex.eatId();
 		return dbname;
 	}
 
+	// Parse DROP DATABASE commands
 	public DropDatabaseData dropDatabase() {
 		lex.eatKeyword("database");
 		String dbname = lex.eatId();
 		return new DropDatabaseData(dbname);
 	}
+	
+	// Parse DROP USER commands
+	public DropUserData dropUser() {
+		lex.eatKeyword("user");
+		String usernmae = lex.eatId();
+		return new DropUserData(usernmae);
+	}
 
+	// Parse DROP TABLE commands
 	public DropTableData dropTable() {
 		lex.eatKeyword("table");
 		String tblname = lex.eatId();
 		return new DropTableData(tblname);
 	}
+	
+	// Parse SHOW TABLE commands
+	public ShowTableData showTableFields() {
+		lex.eatKeyword("table");
+		String tblname = lex.eatId();
+		return new ShowTableData(tblname);
+	}
 
-	public ShowTablesData showDatabaseTables() {
+	// Parse SHOW DATABASE commands
+	public ShowDatabaseData showDatabaseTables() {
 		lex.eatKeyword("database");
 		String dbname = lex.eatId();
-		return new ShowTablesData(dbname);
+		return new ShowDatabaseData(dbname);
 	}
 
 	// Parse SHOW DATABASES commands

@@ -1,6 +1,6 @@
 package tinydb.plan;
 
-import java.util.Collection;
+import java.util.List;
 
 import tinydb.exec.*;
 import tinydb.exec.expr.Condition;
@@ -11,27 +11,27 @@ import tinydb.util.Tuple;
 public class SelectPlan implements Plan {
 	private Plan p;
 	private Condition cond;
-	private Collection<String> lhstables;
-	private Collection<String> rhsfields;
+	private List<String> lhstables;
+	private List<String> rhsfields;
 
 	public SelectPlan(Plan p, Condition cond) {
 		this.p = p;
 		this.cond = cond;
 	}
 
-	public SelectPlan(Plan p, Condition cond, Collection<String> lhstables, Collection<String> rhsfields) {
+	public SelectPlan(Plan p, Condition cond, List<String> lhstables, List<String> rhsfields) {
 		this.p = p;
 		this.cond = cond;
-		Tuple<Collection<String>, Collection<String>> fields = cond.appendFields(lhstables, rhsfields);
+		Tuple<List<String>, List<String>> fields = cond.appendFields(lhstables, rhsfields);
 		this.lhstables = fields.x;
 		this.rhsfields = fields.y;
 	}
 
-	public Collection<String> lhstables() {
+	public List<String> lhstables() {
 		return lhstables;
 	}
 
-	public Collection<String> rhsfields() {
+	public List<String> rhsfields() {
 		return rhsfields;
 	}
 

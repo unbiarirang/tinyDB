@@ -1,9 +1,9 @@
 package tinydb.parse;
 
-public class ShowTablesData {
+public class ShowDatabaseData {
 	private String dbname;
 
-	public ShowTablesData(String dbname) {
+	public ShowDatabaseData(String dbname) {
 	      this.dbname = dbname;
 	   }
 

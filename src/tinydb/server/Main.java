@@ -4,26 +4,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import tinydb.metadata.TableManager;
-import tinydb.parse.*;
 import tinydb.plan.Plan;
-import tinydb.record.*;
-import tinydb.auth.*;
 import tinydb.exec.Exec;
+import tinydb.util.Tuple;
+import tinydb.util.Utils;
 
 public class Main {
-	public static AuthManager am;
 	public static OutputStream output;
 	public static InputStream input;
-	public static DBManager dm;
+
 	public static void main(String[] args) throws Exception {
 		// Create or recover database "test"
 		// SQL: use database test
-		
+
 		ServerSocket serverSocket = new ServerSocket(8888);
 		System.out.println("Server is running now");
 		Socket c_socket = serverSocket.accept();
@@ -33,103 +29,98 @@ public class Main {
 		InputStream input_data = c_socket.getInputStream();
 		output = output_data;
 		input = input_data;
-		
-		while(true) {
-			byte[] recvbuffer =  new byte[1024];
+
+		while (true) {
+			byte[] recvbuffer = new byte[1024];
 			input.read(recvbuffer);
 			System.out.println(new String(recvbuffer));
 			exec(new String(recvbuffer));
 		}
 	}
-	
-	public static void exec(String msg) throws Exception {
-		String cmd = null;
-		int start = 0;
+
+	public static void exec(String cmd) throws Exception {
 		Plan p;
 		Exec e;
-		for(int i = 0; i < msg.length(); i++) {
-			if(msg.charAt(i) == ' ') {
-				cmd = msg.substring(start, i);
-				break;
-			}
-			else if(msg.charAt(i) == '\r' || msg.charAt(i) == '\n') {
-				start++;
-			}
-		}
-		
-		cmd = cmd.toLowerCase();
-		switch(cmd) {
-		case "login":
-			String db = getDB(msg);
-			String id = getID(msg);
-			String pw = getPW(msg);
-			dm.initDB(db);
-			am = dm.authManager();
-			System.out.println("id:" + id);
-			System.out.println("pw:" + pw);
-			if(id.equals("admin") && pw.equals("admin")) {
-				output.write("OK".getBytes());
-				break;
-			}
-			if(am.authenticate(id, pw) == true) {
-				System.out.println("ok");
-				output.write("OK".getBytes());
-			}
-			else {
-				output.write("NO".getBytes());
-				System.out.println("NO".getBytes());
-			}
-			break;
+		String fstCmd = Utils.parseFirstCmd(cmd);
+		System.out.println(cmd);
+
+		fstCmd = fstCmd.toLowerCase();
+		switch (fstCmd) {
+			cmd = cmd.toLowerCase();
+			switch(cmd) {
+				case "login":
+					String db = getDB(msg);
+					String id = getID(msg);
+					String pw = getPW(msg);
+					dm.initDB(db);
+					am = dm.authManager();
+					System.out.println("id:" + id);
+					System.out.println("pw:" + pw);
+					if(id.equals("admin") && pw.equals("admin")) {
+						output.write("OK".getBytes());
+						break;
+					}
+					if(am.authenticate(id, pw) == true) {
+						System.out.println("ok");
+						output.write("OK".getBytes());
+					}
+					else {
+						output.write("NO".getBytes());
+						System.out.println("NO".getBytes());
+					}
+					break;
+					
+				// executeUpdate SQL
+				case "create":
+				case "update":
+				case "insert":
+				case "drop":
+				case "use":
+					DBManager.plannerOpt().executeUpdate(cmd);
+					break;
+					
+				case "select":
+					p = dm.plannerOpt().createQueryPlan(msg);
+					e = p.exec();
+					ArrayList<String> getField = p.schema().fields();
+					String contents = "select " + String.valueOf(getField.size()) + " ";
+					for(int i = 0; i < getField.size(); i++) {
+						contents = contents + getField.get(i) + "\n";
+					}
+					while(e.next()) {
+						for(int i = 0; i < getField.size(); i++) {
+							contents = contents + e.getValToString(getField.get(i)) + "\n";
+						}
+						System.out.println(">>>>>\t" + contents);
+					}
+					output.write(contents.getBytes());
+					break;
+						// executeShow SQL
+						case "show":
+						ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
+						break;
 			
-		case "create":
-			System.out.println(msg);
-			dm.plannerOpt().executeUpdate(msg);
+					// Just for login, cmd is not a SQL
+					// cmd = "login id pw"
+				case "login":
+					Tuple<String, String> id_pw = Utils.getIDandPW(cmd);
+					String id = id_pw.x;
+					String pw = id_pw.y;
+					System.out.println("id:" + id);
+					System.out.println("pw:" + pw);
+					if (DBManager.verifyUser(id, pw)) {
+						System.out.println("ok");
+						output.write("OK".getBytes());
+					} else {
+						output.write("NO".getBytes());
+						System.out.println("NO".getBytes());
+					}
+					break;
+			}
 			output.write("completed".getBytes());
-			break;
-			
-		case "update":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "insert":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "show":
-			ArrayList<String> names = dm.plannerOpt().executeShow(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "drop":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			
-		case "use":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "select":
-			p = dm.plannerOpt().createQueryPlan(msg);
-			e = p.exec();
-			ArrayList<String> getField = p.schema().fields();
-			String contents = "select " + String.valueOf(getField.size()) + " ";
-			for(int i = 0; i < getField.size(); i++) {
-				contents = contents + getField.get(i) + "\n";
-			}
-			while(e.next()) {
-				for(int i = 0; i < getField.size(); i++) {
-					contents = contents + e.getValToString(getField.get(i)) + "\n";
-				}
-				System.out.println(">>>>>\t" + contents);
-			}
-			output.write(contents.getBytes());
-			break;
-			
 		}
 	}
+		
 	public static String getDB(String msg) {
 		for (int i = 6; i < msg.length(); i++) {
 			if(msg.charAt(i) == '\n') {
@@ -164,9 +155,9 @@ public class Main {
 					fst = i;
 			}
 		}
-		return "NO";
 	}
-	
+	}
+
 //		String dbname1 = "test1";
 //		DBManager.initDB(dbname1);
 //		System.out.println("SQL: use database test1");
@@ -304,4 +295,4 @@ public class Main {
 //		rm.deleteAll("a", (Integer)1);
 //		rm.scanAll();
 //	}
-}
+// }

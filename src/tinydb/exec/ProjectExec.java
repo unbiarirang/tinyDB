@@ -11,12 +11,12 @@ public class ProjectExec implements Exec {
 	private ArrayList<String> tablelist;
 	private ArrayList<String> fieldlist;
 
-	public ProjectExec(Exec e, Collection<String> fieldlist) {
+	public ProjectExec(Exec e, List<String> fieldlist) {
 		this.e = e;
 		this.fieldlist = (ArrayList<String>) fieldlist;
 	}
 
-	public ProjectExec(Exec e, Collection<String> tablelist, Collection<String> fieldlist) {
+	public ProjectExec(Exec e, List<String> tablelist, List<String> fieldlist) {
 		this.e = e;
 		this.tablelist = (ArrayList<String>) tablelist;
 		this.fieldlist = (ArrayList<String>) fieldlist;

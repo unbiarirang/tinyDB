@@ -21,7 +21,7 @@ public class Lexer {
 		keywords = Arrays.asList("select", "from", "where", "and", "or", "join", "insert", "into", "values", "delete",
 				"update", "set", "create", "table", "view", "as", "index", "on", "drop", "use", "database", "show",
 				"databases", "int", "varchar", "long", "float", "double", "string", "not", "null", "primary", "key",
-				"natural");
+				"natural", "grant", "revoke", "user");
 	}
 
 	// Methods to check the status of the current token

@@ -70,8 +70,12 @@ public class DBManager {
 		fm.deleteUserInfos(mm.dbname(), obj.tblName()); // delete metadata from usercat
 		return 0;
 	}
+	
+	public static ArrayList<String> showTableFields(ShowTableData obj) {
+		return mm.getTableFields(obj.tblName());
+	}
 
-	public static ArrayList<String> showDatabaseTables(ShowTablesData obj) {
+	public static ArrayList<String> showDatabaseTables(ShowDatabaseData obj) {
 		String oldname = mm.dbname();
 
 		if (obj.dbName() == oldname)
@@ -87,37 +91,50 @@ public class DBManager {
 		return fm.getDatabaseNames();
 	}
 
-	public static void createUser(String username, String password) {
+	public static int createUser(CreateUserData obj) {
+		String username = obj.username();
+		String password = obj.userpw();
 		String salt = PasswordUtils.getSalt();
 		String pwhash = PasswordUtils.generateSecurePassword(password, salt);
 		// Add password info
 		am.addPasswordInfo(username, salt, pwhash);
 		fm.recordPasswordInfo(username, salt, pwhash);
+		return 1;
 	}
 
-	public static void deleteUser(String username) {
+	public static int dropUser(DropUserData obj) {
+		String username = obj.username();
 		PasswordInfo pwinfo = am.getPasswordInfo(username);
 		String salt = pwinfo.x;
 		String pwhash = pwinfo.y;
 		// Delete password info
 		am.removePasswordInfo(username, salt, pwhash);
 		fm.deletePasswordInfo(username, salt, pwhash);
+		return 1;
 	}
 
 	public static boolean verifyUser(String username, String password) {
 		return am.authenticate(username, password);
 	}
 
-	public static void addUserRole(String username, String tblname, String opname) {
-		String role = String.join(" ", username, mm.dbname(), tblname, opname);
+	public static int grantPrivilege(GrantPrivilegeData obj) {
+		String username = obj.username();
+		String tblname  = obj.tblname();
+		String privilege   = obj.privilege();
+		String role = String.join(" ", username, mm.dbname(), tblname, privilege);
 		am.addUserRole(role);
 		fm.recordUserRole(role);
+		return 1;
 	}
 
-	public static void removeUserRole(String username, String tblname, String opname) {
-		String role = String.join(" ", username, mm.dbname(), tblname, opname);
+	public static int revokePrivilege(RevokePrivilegeData obj) {
+		String username = obj.username();
+		String tblname  = obj.tblname();
+		String privilege   = obj.privilege();
+		String role = String.join(" ", username, mm.dbname(), tblname, privilege);
 		am.removeUserRole(role);
 		fm.deleteUserRole(role);
+		return 1;
 	}
 
 	public static PlannerBase planner() {

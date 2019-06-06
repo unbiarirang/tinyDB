@@ -191,12 +191,12 @@ public class FileManager {
 		}
 	}
 
-	public Tuple<Roles, PasswordInfos> getUserInfo() {
+	public Tuple<Privileges, PasswordInfos> getUserInfo() {
 		String homedir = System.getProperty("user.home");
 		File file = new File(homedir, "usercat");
 		BufferedReader br;
 
-		Roles roles = new Roles();
+		Privileges privileges = new Privileges();
 		PasswordInfos pwinfos = new PasswordInfos();
 
 		try {
@@ -209,7 +209,7 @@ public class FileManager {
 				if (tokens.length == 3) 	 // username - salt - pwhash
 					pwinfos.put(tokens[0], new PasswordInfo(tokens[1], tokens[2]));
 				else if (tokens.length == 4) // username - dbname - tblname - opname
-					roles.add(line);
+					privileges.add(line);
 				else { 
 					br.close();
 					throw new IOException("Wrong file format!");
@@ -218,7 +218,7 @@ public class FileManager {
 				line = br.readLine();
 			}
 			br.close();
-			return new Tuple<Roles, PasswordInfos>(roles, pwinfos);
+			return new Tuple<Privileges, PasswordInfos>(privileges, pwinfos);
 		} catch (FileNotFoundException e) {
 			e.getStackTrace();
 			return null;

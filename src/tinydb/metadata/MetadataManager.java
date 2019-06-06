@@ -43,6 +43,11 @@ public class MetadataManager {
 	public Table getTableInfo(String tblname) {
 		return tm.getTable(tblname);
 	}
+	
+	public ArrayList<String> getTableFields(String tblname) {
+		Table tb = tm.getTable(tblname);
+		return tb.schema().fields();
+	}
 
 	public StatInfo getStatInfo(String tblname, Table tb) {
 		return sm.getStatInfo(tblname, tb);
@@ -52,9 +57,7 @@ public class MetadataManager {
 		im.createIndex(idxname, tblname, fldname);
 	}
 
-	// FIXME
 	public Map<String, IndexInfo> getIndexInfo(String tblname) {
-		// return im.getIndexInfo(tblname);
 		return im.getIndexInfo(tblname);
 	}
 }

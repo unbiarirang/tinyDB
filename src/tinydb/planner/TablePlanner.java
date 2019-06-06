@@ -7,15 +7,15 @@ import tinydb.metadata.IndexInfo;
 import tinydb.plan.*;
 import tinydb.server.DBManager;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 // TablePlan + indexes
 class TablePlanner {
 	private TablePlan plan;
 	private Condition cond;
-	private Collection<String> lhstables;
-	private Collection<String> rhsfields;
+	private List<String> lhstables;
+	private List<String> rhsfields;
 	private Schema schema;
 	private Map<String, IndexInfo> indexes;
 
@@ -26,7 +26,7 @@ class TablePlanner {
 		indexes = DBManager.metadataManager().getIndexInfo(tblname);
 	}
 	
-	public TablePlanner(String tblname, Condition cond, Collection<String> lhstables, Collection<String> rhsfields) {
+	public TablePlanner(String tblname, Condition cond, List<String> lhstables, List<String> rhsfields) {
 		this.cond = cond;
 		this.lhstables = lhstables;
 		this.rhsfields = rhsfields;

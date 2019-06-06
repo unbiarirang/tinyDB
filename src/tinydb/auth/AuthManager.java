@@ -9,13 +9,13 @@ import tinydb.util.Tuple;
 public class AuthManager {
 	private static final int SALT_LEN = 30;
 
-	private static Roles 			roles = new Roles();
+	private static Privileges 		privileges = new Privileges();
 	private static PasswordInfos 	pwinfos = new PasswordInfos(); // key: username, val: PasswordInfo
 
-	public AuthManager(Tuple<Roles, PasswordInfos> userInfo) {
+	public AuthManager(Tuple<Privileges, PasswordInfos> userInfo) {
 		if (userInfo == null) return;
 
-		AuthManager.roles = userInfo.x;
+		AuthManager.privileges = userInfo.x;
 		AuthManager.pwinfos = userInfo.y;
 	}
 
@@ -35,15 +35,15 @@ public class AuthManager {
 	}
 
 	public void addUserRole(String role) {
-		roles.add(role);
+		privileges.add(role);
 	}
 	
 	public void removeUserRole(String role) {
-		roles.remove(role);
+		privileges.remove(role);
 	}
 
 	public boolean checkUserRole(String role) {
-		return roles.contains(role);
+		return privileges.contains(role);
 	}
 	
 	public void addPasswordInfo(String username, String salt, String pwhash) {
@@ -66,8 +66,8 @@ public class AuthManager {
 		return pwinfos.get(username).y;
 	}
 	
-	public static class Roles extends HashSet<String> {
-		public Roles() { super(); }
+	public static class Privileges extends HashSet<String> {
+		public Privileges() { super(); }
 	}
 	
 	// x: salt, y: pwhash

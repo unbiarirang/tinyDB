@@ -113,10 +113,10 @@ public class Condition {
 		return null;
 	}
 
-	public Tuple<Collection<String>, Collection<String>> appendFields(Collection<String> tableL,
-			Collection<String> fieldL) {
-		Collection<String> lhstables = tableL != null ? new ArrayList<String>(tableL) : new ArrayList<String>();
-		Collection<String> rhsfields = fieldL != null ? new ArrayList<String>(fieldL) : new ArrayList<String>();
+	public Tuple<List<String>, List<String>> appendFields(List<String> tableL,
+			List<String> fieldL) {
+		List<String> lhstables = tableL != null ? new ArrayList<String>(tableL) : new ArrayList<String>();
+		List<String> rhsfields = fieldL != null ? new ArrayList<String>(fieldL) : new ArrayList<String>();
 		String tblname1, tblname2, fldname1, fldname2;
 		for (Comparison t : terms) {
 			tblname1 = t.getLhsTableName();
@@ -133,11 +133,11 @@ public class Condition {
 			}
 		}
 
-		return new Tuple<Collection<String>, Collection<String>>(lhstables, rhsfields);
+		return new Tuple<List<String>, List<String>>(lhstables, rhsfields);
 	}
 
 	// Support natural join between two relations
-	public void addNaturalJoin(Collection<String> tables) {
+	public void addNaturalJoin(List<String> tables) {
 		List<String> intersect = null;
 		List<String> tblnames = new ArrayList<String>(tables);
 		Table tb1 = DBManager.tableManager().getTable(tblnames.get(0));
