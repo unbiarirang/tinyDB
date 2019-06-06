@@ -10,6 +10,7 @@ import tinydb.record.Schema;
 import tinydb.record.Table;
 import tinydb.server.DBManager;
 import tinydb.util.BadSyntaxException;
+import tinydb.util.Utils;
 
 import java.util.*;
 
@@ -173,7 +174,7 @@ public class OptimizedPlanner implements PlannerBase {
 		return count;
 	}
 
-	// Optimized (modify with index)
+	// Optimized (update with index)
 	public int executeModify(ModifyData data) {
 		Plan p = new TablePlan(data.tableName());
 		p = new SelectPlan(p, data.cond());

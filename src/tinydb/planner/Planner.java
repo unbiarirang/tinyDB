@@ -70,6 +70,14 @@ public class Planner implements PlannerBase {
 			return executeCreateTable((CreateTableData) obj);
 		else if (obj instanceof CreateIndexData)
 			return executeCreateIndex((CreateIndexData) obj);
+		else if (obj instanceof CreateUserData)
+			return DBManager.createUser((CreateUserData) obj);
+		else if (obj instanceof GrantPrivilegeData)
+			return DBManager.grantPrivilege((GrantPrivilegeData) obj);
+		else if (obj instanceof RevokePrivilegeData)
+			return DBManager.revokePrivilege((RevokePrivilegeData) obj);
+		else if (obj instanceof DropUserData)
+			return DBManager.dropUser((DropUserData) obj);
 		else if (obj instanceof DropDatabaseData)
 			return DBManager.dropDatabase((DropDatabaseData) obj);
 		else if (obj instanceof DropTableData)

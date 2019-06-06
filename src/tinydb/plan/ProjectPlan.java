@@ -18,7 +18,8 @@ public class ProjectPlan implements Plan {
 		Exec e = p.exec();
 		try {
 			if (((SelectPlan) p).lhstables() != null && ((SelectPlan) p).rhsfields() != null)
-				return new ProjectExec(e, ((SelectPlan) p).lhstables(), ((SelectPlan) p).rhsfields());
+				return new ProjectExec(e, ((SelectPlan) p).lhstables(),
+						((SelectPlan) p).rhsfields(), schema.fields());
 			
 			return new ProjectExec(e, schema.fields());
 		} catch (ClassCastException ex) {

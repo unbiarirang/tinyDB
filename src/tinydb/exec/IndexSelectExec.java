@@ -1,6 +1,9 @@
 package tinydb.exec;
 
 import tinydb.record.RID;
+
+import java.util.ArrayList;
+
 import tinydb.exec.consts.Constant;
 import tinydb.index.Index;
 
@@ -39,6 +42,18 @@ public class IndexSelectExec implements Exec {
 		return te.getVal(fldname);
 	}
 	
+	public String getAllVal() {
+		return te.getAllVal();
+	}
+	
+	public String getAllVal(ArrayList<String> fieldlist) {
+		return te.getAllVal(fieldlist);
+	}
+
+	public String getAllVal(ArrayList<String> tablelist, ArrayList<String> fieldlist) throws Exception {
+		throw new Exception("Not implemented!");
+	}
+	
 	public String getValToString(String fldname) {
 		return te.getValToString(fldname);
 	}
@@ -69,5 +84,9 @@ public class IndexSelectExec implements Exec {
 	
 	public boolean hasField(String fldname, String tblname) {
 		return te.hasField(fldname, tblname);
+	}
+	
+	public boolean hasTable(String tblname) {
+		return te.hasTable(tblname);
 	}
 }
