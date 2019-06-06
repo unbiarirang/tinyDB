@@ -2,13 +2,13 @@ package tinydb.plan;
 
 import tinydb.exec.*;
 import tinydb.record.Schema;
-import java.util.Collection;
+import java.util.List;
 
 public class ProjectPlan implements Plan {
 	private Plan p;
 	private Schema schema = new Schema();
 
-	public ProjectPlan(Plan p, Collection<String> fieldlist) {
+	public ProjectPlan(Plan p, List<String> fieldlist) {
 		this.p = p;
 		for (String fldname : fieldlist)
 			schema.add(fldname, p.schema());

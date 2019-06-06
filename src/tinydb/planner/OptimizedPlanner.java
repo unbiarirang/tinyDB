@@ -112,6 +112,14 @@ public class OptimizedPlanner implements PlannerBase {
 			return executeCreateTable((CreateTableData) obj);
 		else if (obj instanceof CreateIndexData)
 			return executeCreateIndex((CreateIndexData) obj);
+		else if (obj instanceof CreateUserData)
+			return DBManager.createUser((CreateUserData) obj);
+		else if (obj instanceof GrantPrivilegeData)
+			return DBManager.grantPrivilege((GrantPrivilegeData) obj);
+		else if (obj instanceof RevokePrivilegeData)
+			return DBManager.revokePrivilege((RevokePrivilegeData) obj);
+		else if (obj instanceof DropUserData)
+			return DBManager.dropUser((DropUserData) obj);
 		else if (obj instanceof DropDatabaseData)
 			return DBManager.dropDatabase((DropDatabaseData) obj);
 		else if (obj instanceof DropTableData)
@@ -126,9 +134,11 @@ public class OptimizedPlanner implements PlannerBase {
 	public ArrayList<String> executeShow(String cmd) {
 		Parser parser = new Parser(cmd);
 		Object obj = parser.showCmd();
-		if (obj instanceof ShowTablesData)
-			return DBManager.showDatabaseTables((ShowTablesData) obj);
-		else
+		if (obj instanceof ShowTableData)			// SHOW TABLE
+			return DBManager.showTableFields((ShowTableData) obj);
+		else if (obj instanceof ShowDatabaseData)	// SHOW DATABASE
+			return DBManager.showDatabaseTables((ShowDatabaseData) obj);
+		else										// SHOW DATABASES
 			return DBManager.showDatabases();
 	}
 

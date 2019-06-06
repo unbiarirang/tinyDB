@@ -8,6 +8,7 @@ import java.util.*;
 public class Schema {
 	// key: fldname value: fldinfo
 	private HashMap<String, Field> fields = new HashMap<String, Field>();
+	private ArrayList<String> fieldsL = new ArrayList<String>();
 
 	public Schema() {
 	}
@@ -15,18 +16,22 @@ public class Schema {
 	// Add a field to the schema
 	public void addField(String fldname, int type) {
 		fields.put(fldname, new Field(type));
+		fieldsL.add(fldname);
 	}
 	
 	public void addField(String fldname, int type, int length) {
 		fields.put(fldname, new Field(type, length));
+		fieldsL.add(fldname);
 	}
 
 	public void addField(String fldname, int type, boolean isNotNull, boolean isPk) {
 		fields.put(fldname, new Field(type, isNotNull, isPk));
+		fieldsL.add(fldname);
 	}
 	
 	public void addField(String fldname, int type, int length, boolean isNotNull, boolean isPk) {
 		fields.put(fldname, new Field(type, length, isNotNull, isPk));
+		fieldsL.add(fldname);
 	}
 
 	public void addIntField(String fldname) {
@@ -76,12 +81,14 @@ public class Schema {
 	}
 
 	public void addAll(Schema sch) {
-		if (sch != null)
+		if (sch != null) {
 			fields.putAll(sch.fields);
+			fieldsL.addAll(sch.fields());
+		}
 	}
 
 	public ArrayList<String> fields() {
-		return new ArrayList<String> (fields.keySet());
+		return fieldsL;
 	}
 
 	public boolean hasField(String fldname) {

@@ -4,137 +4,94 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import tinydb.metadata.TableManager;
-import tinydb.parse.*;
 import tinydb.plan.Plan;
-import tinydb.record.*;
-import tinydb.auth.*;
 import tinydb.exec.Exec;
+import tinydb.util.Tuple;
+import tinydb.util.Utils;
 
 public class Main {
-	public static AuthManager am;
 	public static OutputStream output;
 	public static InputStream input;
-	public static DBManager dm;
+
 	public static void main(String[] args) throws Exception {
 		// Create or recover database "test"
 		// SQL: use database test
-		
+
 		ServerSocket serverSocket = new ServerSocket(8888);
 		System.out.println("Server is running now");
 		Socket c_socket = serverSocket.accept();
 		System.out.println("User connected");
-		
-		dm.initDB("testdb");
-		am = dm.authManager();
+
+		DBManager.initDB("testdb");
 
 		OutputStream output_data = c_socket.getOutputStream();
 		InputStream input_data = c_socket.getInputStream();
 		output = output_data;
 		input = input_data;
-		
-		while(true) {
-			byte[] recvbuffer =  new byte[1024];
+
+		while (true) {
+			byte[] recvbuffer = new byte[1024];
 			input.read(recvbuffer);
 			System.out.println(new String(recvbuffer));
 			exec(new String(recvbuffer));
 		}
 	}
-	
-	public static void exec(String msg) throws Exception {
-		String cmd = null;
-		int start = 0;
+
+	public static void exec(String cmd) throws Exception {
 		Plan p;
 		Exec e;
-		for(int i = 0; i < msg.length(); i++) {
-			if(msg.charAt(i) == ' ') {
-				cmd = msg.substring(start, i);
-				break;
-			}
-			else if(msg.charAt(i) == '\r' || msg.charAt(i) == '\n') {
-				start++;
-			}
-		}
+		String fstCmd = Utils.parseFirstCmd(cmd);
+		System.out.println(cmd);
+
+		fstCmd = fstCmd.toLowerCase();
+		switch (fstCmd) {
 		
-		cmd = cmd.toLowerCase();
-		switch(cmd) {
-		case "login":
-			String id = getID(msg);
-			String pw = getPW(msg);
-			System.out.println("id:" + id);
-			System.out.println("pw:" + pw);
-			if(am.authenticate(id, pw) == true) {
-				System.out.println("ok");
-				output.write("OK".getBytes());
-			}
-			else {
-				output.write("NO".getBytes());
-				System.out.println("NO".getBytes());
-			}
-			break;
-			
-		case "create":
-			System.out.println(msg);
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "update":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "insert":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "show":
-			ArrayList<String> names = dm.plannerOpt().executeShow(msg);
-			output.write("completed".getBytes());
-			break;
-			
-		case "drop":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			
-		case "use":
-			dm.plannerOpt().executeUpdate(msg);
-			output.write("completed".getBytes());
-			break;
-			
+		// createQueryPlan SQL
 		case "select":
-			p = dm.plannerOpt().createQueryPlan(msg);
+			p = DBManager.plannerOpt().createQueryPlan(cmd);
 //			e = p.exec();
 //			while(e.next()) {
 //		
 //			}
-			output.write("completed".getBytes());
 			break;
 			
-		}
-	}
-	public static String getID(String msg) {
-		for(int i = 6; i < msg.length() ; i++) {
-			if(msg.charAt(i) == ' ') {
-				return msg.substring(6, i);
+		// executeUpdate SQL
+		case "create":
+		case "update":
+		case "insert":
+		case "drop":
+		case "use":
+			DBManager.plannerOpt().executeUpdate(cmd);
+			break;
+
+		// executeShow SQL
+		case "show":
+			ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
+			break;
+
+		// Just for login, cmd is not a SQL
+		// cmd = "login id pw"
+		case "login":
+			Tuple<String, String> id_pw = Utils.getIDandPW(cmd);
+			String id = id_pw.x;
+			String pw = id_pw.y;
+			System.out.println("id:" + id);
+			System.out.println("pw:" + pw);
+			if (DBManager.verifyUser(id, pw)) {
+				System.out.println("ok");
+				output.write("OK".getBytes());
+			} else {
+				output.write("NO".getBytes());
+				System.out.println("NO".getBytes());
 			}
+			break;
 		}
-		return "NO";
+		output.write("completed".getBytes());
 	}
-	public static String getPW(String msg) {
-		for(int i = msg.length() - 1; i > 0; i--) {
-			if(msg.charAt(i) == ' ') {
-				return msg.substring(i + 1, msg.length() - 1);
-			}
-		}
-		return "NO";
-	}
-	
+
 //		String dbname1 = "test1";
 //		DBManager.initDB(dbname1);
 //		System.out.println("SQL: use database test1");

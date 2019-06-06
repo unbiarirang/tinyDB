@@ -83,9 +83,11 @@ public class Planner implements PlannerBase {
 	public ArrayList<String> executeShow(String cmd) {
 		Parser parser = new Parser(cmd);
 		Object obj = parser.showCmd();
-		if (obj instanceof ShowTablesData)
-			return DBManager.showDatabaseTables((ShowTablesData) obj);
-		else
+		if (obj instanceof ShowTableData)			// SHOW TABLE
+			return DBManager.showTableFields((ShowTableData) obj);
+		else if (obj instanceof ShowDatabaseData)	// SHOW DATABASE
+			return DBManager.showDatabaseTables((ShowDatabaseData) obj);
+		else										// SHOW DATABASES
 			return DBManager.showDatabases();
 	}
 
