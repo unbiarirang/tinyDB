@@ -10,3 +10,9 @@
 /Parser.class
 /QueryData.class
 /ShowTablesData.class
+/CreateUserData.class
+/DropUserData.class
+/GrantPrivilegeData.class
+/RevokePrivilegeData.class
+/ShowDatabaseData.class
+/ShowTableData.class

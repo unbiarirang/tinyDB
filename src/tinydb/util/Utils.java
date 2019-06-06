@@ -29,20 +29,40 @@ public class Utils {
 		}
 		return fstCmd;
 	}
-
-	public static Tuple<String, String> getIDandPW(String msg) {
-		String id = null, pw = null;
-
+	
+	public static String getDB(String msg) {
+		
+		
+		return msg;
+	}
+	
+	public static String[] getInfo(String msg) {
+		String id = null, pw = null, db = null;
+		String[] info = new String[3];
 		int i;
+		int cnt = 0;
+		int fst = 0;
 		for (i = 6; i < msg.length(); i++) {
-			if (msg.charAt(i) == ' ') {
-				id = msg.substring(6, i);
-				break;
+			if (msg.charAt(i) == '\n') {
+				cnt++;
+				if (cnt == 1) {
+					db = msg.substring(6, i);
+					info[0] = db;
+					fst = i + 1;
+				}
+				else if (cnt == 2){
+					id = msg.substring(fst, i);
+					info[1] = id;
+					fst = i + 1;
+				}
+				else {
+					pw = msg.substring(fst, i);
+					info[2] = pw;
+					break;
+				}
 			}
 		}
 
-		pw = msg.substring(i + 1, msg.length() - 1);
-
-		return new Tuple<String, String>(id, pw);
+		return info;
 	}
 }

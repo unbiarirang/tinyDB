@@ -65,7 +65,7 @@ public class Swing {
 		Inputpanel.setBounds(0, 0, 800, 500);
 		Resultpanel.setBorder(BorderFactory.createLoweredBevelBorder());
 		Loginframe.add(Loginpanel);
-		Controlframe.add(Resultpanel);
+		Controlframe.add(ResultPanel);
 		Controlframe.add(Inputpanel);
 
 		placeLoginComponents(Loginpanel);
@@ -123,7 +123,6 @@ public class Swing {
 					output.write(contents.getBytes());
 					input.read(recv);
 					String getto = new String(recv);
-					System.out.println("get:" + getto);
 					if(getto.charAt(0) == 'O') {
 						System.out.println(new String(recv));
 						Loginframe.setVisible(false);
@@ -201,7 +200,7 @@ public class Swing {
 							output.write(extract.getBytes());
 							input.read(recvbuffer);
 							ifSelect((new String(recvbuffer)));
-							System.out.println((new String(recvbuffer)));
+//							System.out.println((new String(recvbuffer)));
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}	
@@ -212,6 +211,7 @@ public class Swing {
 	}
 	public static void ifSelect(String cmd) {
 		String test = cmd.substring(0, 6);
+		System.out.println("here1!!!" + cmd);
 		if (test.equals("select")) {
 			placeResultComponents(cmd.substring(7, cmd.length()));
 		}
@@ -219,12 +219,13 @@ public class Swing {
 
 	private static void placeResultComponents(String cmd) {
 		
+		ResultPanel.removeAll();
 		Vector columnNames = new Vector();
 		int columnNum = 0;
 		for(int i = 0; i < cmd.length(); i++) {
 			if(cmd.charAt(i) == ' ') {
 				columnNum = Integer.parseInt(cmd.substring(0, i));
-				cmd = cmd.substring(i + 1, cmd.length());
+				cmd = cmd.substring(i, cmd.length());
 				break;
 			}
 		}
@@ -233,8 +234,8 @@ public class Swing {
 		for(int i = 0; i < cmd.length(); i++) {
 			if (cmd.charAt(i) == '\n') {
 				cnt++;
-				String test = cmd.substring(fst, i);
-				columnNames.add(cmd.substring(fst, i));
+				String test = cmd.substring(fst + 1, i);
+				columnNames.add(cmd.substring(fst + 1, i));
 				fst = i;
 				if(cnt == columnNum) {
 					cmd = cmd.substring(fst + 1, cmd.length());
@@ -261,8 +262,6 @@ public class Swing {
 			}
 		}
 		
-		
-		ResultPanel.removeAll();
 		JTable table = new JTable(rowData, columnNames);
 		DefaultTableModel tableModel = new DefaultTableModel(rowData, columnNames) {
 
@@ -295,6 +294,7 @@ public class Swing {
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setViewportView(table);
 
+		
 		ResultPanel.add(scrollPane);
 		Controlframe.setVisible(true);
 	}
