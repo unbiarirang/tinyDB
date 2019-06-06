@@ -88,8 +88,10 @@ public class IndexJoinExec implements Exec {
 		    String fldname = it2.next();
 		    if (te.hasTable(tblname) && te.hasField(fldname))
 		    	res += te.getValToString(fldname) + " ";
-		    else
+		    else if (e.hasTable(tblname) && e.hasField(fldname))
 		    	res += e.getValToString(fldname) + " ";
+		    else
+		    	res += getValToString(fldname) + " ";
 		}
 		return res;
 	}

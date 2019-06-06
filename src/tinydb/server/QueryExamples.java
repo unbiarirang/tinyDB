@@ -18,7 +18,7 @@ public class QueryExamples {
 		try {
 			DBManager.initDB("testdb");
 			
-			int[] testcase = { 	  1,	// 0. SELECT
+			int[] testcase = { 	  0,	// 0. SELECT
 								  1,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
@@ -31,8 +31,8 @@ public class QueryExamples {
 								  0,	// 10. Index SELECT
 								  0,	// 11. Index JOIN
 								  1,	// 12. JOIN & SELECT with tbname.attrname
-								  0,	// 13. Natural JOIN
-								  0,	// 14. multiple JOIN
+								  1,	// 13. Natural JOIN
+								  1,	// 14. multiple JOIN
 								  0,	// 15. CREATE USER
 								  0,	// 16. DROP USER
 								  0,	// 17. GRANT PRIVILEGE
@@ -94,7 +94,6 @@ public class QueryExamples {
 	private static void select2() throws Exception {
 		String qry1_1 = "drop table avengers";
 		String qry1_0 = "drop table villain";
-		// Two different grammar to create primary key
 		String qry1_2 = "create table avengers" + 
 				"	(id			 int not null," + 
 				"	 name	     string(32) not null," +
@@ -130,13 +129,13 @@ public class QueryExamples {
 		DBManager.plannerOpt().executeUpdate(qry1_10);
 		DBManager.plannerOpt().executeUpdate(qry1_11);
 
-		String qry1_12 = "select * from avengers;";
+		String qry1_12 = "select * from avengers where id = 10;";
 		p = DBManager.plannerOpt().createQueryPlan(qry1_12);
-		//execPlan(p);
+		execPlan(p);
 		
 		String qry1_13 = "select * from villain;";
 		p = DBManager.plannerOpt().createQueryPlan(qry1_13);
-		//execPlan(p);
+		execPlan(p);
 		
 		String qry = "select avengers.name, villain.name, villain.power " +
 				 "from avengers join villain on avengers.power = villain.power " +
@@ -295,7 +294,7 @@ public class QueryExamples {
 		DBManager.plannerOpt().executeUpdate(qry8_12);
 
 		String qry8 = "select id1, a, b, c " + "from JOINTEST1 " + "join JOINTEST2 on id1 = id2 "
-				+ "join JOINTEST3 on id2 = id3 " + "where id1 = 1";
+				+ "join JOINTEST3 on id2 = id3 where id1 = 1";
 		p = DBManager.plannerOpt().createQueryPlan(qry8);
 		execPlan(p);
 	}
