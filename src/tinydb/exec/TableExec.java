@@ -38,21 +38,18 @@ public class TableExec implements UpdateExec {
 		return rm.next();
 	}
 
-	public void close() {
-		rm.close();
-	}
-
 	public Constant getVal(String fldname) {
+		boolean isNull = rm.isNull(fldname);
 		if (sch.type(fldname) == INTEGER)
-			return new IntConstant(rm.getInt(fldname));
+			return new IntConstant(rm.getInt(fldname), isNull);
 		else if (sch.type(fldname) == LONG)
-			return new LongConstant(rm.getLong(fldname));
+			return new LongConstant(rm.getLong(fldname), isNull);
 		else if (sch.type(fldname) == FLOAT)
-			return new FloatConstant(rm.getFloat(fldname));
+			return new FloatConstant(rm.getFloat(fldname), isNull);
 		else if (sch.type(fldname) == DOUBLE)
-			return new DoubleConstant(rm.getDouble(fldname));
+			return new DoubleConstant(rm.getDouble(fldname), isNull);
 		else
-			return new StringConstant(rm.getString(fldname));
+			return new StringConstant(rm.getString(fldname), isNull);
 	}
 	
 	public String getAllVal() {
@@ -135,28 +132,35 @@ public class TableExec implements UpdateExec {
 		if (sch.getPk().contentEquals(fldname) && rm.isValExist(fldname, val.value())) {
 			throw new DuplicatedException("The primary key value is duplicated");
 		}
-
-		try {
-			if (sch.type(fldname) == INTEGER)
+		
+		int type = sch.type(fldname);
+		
+		if (val.value() instanceof Long) {
+			if (type == INTEGER)
 				rm.setInt(fldname, (Integer) ((Long) val.value()).intValue());
-			else if (sch.type(fldname) == LONG)
+			else if (type == LONG)
 				rm.setLong(fldname, (Long) val.value());
-			else if (sch.type(fldname) == FLOAT) {
-				try {
-					rm.setFloat(fldname, (Float) ((Double) val.value()).floatValue());
-				} catch (java.lang.ClassCastException e) {
-					rm.setFloat(fldname, (Float) ((Long) val.value()).floatValue());
-				}
-			} else if (sch.type(fldname) == DOUBLE)
-				try {
-					rm.setDouble(fldname, (Double) val.value());
-				} catch (java.lang.ClassCastException e) {
-					rm.setDouble(fldname, (Double) ((Long) val.value()).doubleValue());
-				}
+		} else if (val.value() instanceof Double) {
+			if (type == INTEGER)
+				rm.setInt(fldname, (Integer) ((Double) val.value()).intValue());
+			else if (type == LONG)
+				rm.setLong(fldname, (Long) ((Double) val.value()).longValue());
+			else if (type == FLOAT)
+				rm.setFloat(fldname, (Float) ((Double) val.value()).floatValue());
+			else if (type == DOUBLE)
+				rm.setDouble(fldname, (Double) val.value());
+		}
+		else { // if directory table
+			if (type == INTEGER)
+				rm.setInt(fldname, (Integer) val.value());
+			else if (type == LONG)
+				rm.setLong(fldname, (Long) val.value());
+			else if (type == FLOAT)
+				rm.setFloat(fldname, (Float) val.value());
+			else if (type == DOUBLE)
+				rm.setDouble(fldname, (Double) val.value());
 			else
 				rm.setString(fldname, (String) val.value());
-		} catch (ClassCastException e) {
-			throw new BadSyntaxException("Attributs and value types do not match");
 		}
 	}
 
@@ -182,6 +186,10 @@ public class TableExec implements UpdateExec {
 
 	public void delete() {
 		rm.delete();
+	}
+
+	public void close() {
+		rm.close();
 	}
 
 	public void insert() {

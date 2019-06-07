@@ -18,8 +18,8 @@ public class BPTreeDir {
 	public void close() {
 		contents.close();
 	}
-	
-	//search the block which is search key in
+
+	// search the block which is search key in
 	public int search(Constant searchkey) {
 		Block childblk = findChildBlock(searchkey);
 		while (contents.getFlag() > 0) {
@@ -40,7 +40,7 @@ public class BPTreeDir {
 		contents.setFlag(level + 1);
 	}
 
-	//Insert new directory entry
+	// Insert new directory entry
 	public DirEntry insert(DirEntry e) {
 		if (contents.getFlag() == 0)
 			return insertEntry(e);
@@ -63,8 +63,8 @@ public class BPTreeDir {
 		Block newblk = contents.split(splitpos, level);
 		return new DirEntry(splitval, newblk.number());
 	}
-	
-	//get the next block
+
+	// get the next block
 	private Block findChildBlock(Constant searchkey) {
 		int slot = contents.findSlotBefore(searchkey);
 		if (contents.getDataVal(slot + 1).equals(searchkey))

@@ -17,24 +17,19 @@ public class BPTreeLeaf {
 		currentslot = contents.findSlotBefore(searchkey);
 	}
 
-	public void close() {
-		contents.close();
-	}
-	
-	//move to the n slot
+	// move to the n slot
 	public void setCurrentSlot(int n) {
 		currentslot = n;
 	}
-	
-	//search the next record which has specified value
+
+	// search the next record which has specified value
 	public boolean next() {
 		currentslot++;
 		if (currentslot >= contents.getNumRecs())
 			return tryOverflow();
 		else if (contents.getDataVal(currentslot).equals(searchkey)) {
 			return true;
-		}
-		else
+		} else
 			return tryOverflow();
 	}
 
@@ -64,9 +59,9 @@ public class BPTreeLeaf {
 		contents.insertLeaf(currentslot, searchkey, datarid);
 		if (!contents.isFull())
 			return null;
-		//when block has spare space
-		
-		//block is full
+		// when block has spare space
+
+		// block is full
 		Constant firstkey = contents.getDataVal(0);
 		Constant lastkey = contents.getDataVal(contents.getNumRecs() - 1);
 		if (lastkey.equals(firstkey)) {
@@ -77,12 +72,12 @@ public class BPTreeLeaf {
 			int splitpos = contents.getNumRecs() / 2;
 			Constant splitkey = contents.getDataVal(splitpos);
 			if (splitkey.equals(firstkey)) {
-				//search next key
+				// search next key
 				while (contents.getDataVal(splitpos).equals(splitkey))
 					splitpos++;
 				splitkey = contents.getDataVal(splitpos);
 			} else {
-				//search first entry having that key
+				// search first entry having that key
 				while (contents.getDataVal(splitpos - 1).equals(splitkey))
 					splitpos--;
 			}
@@ -101,5 +96,9 @@ public class BPTreeLeaf {
 		contents = new BPTreePage(nextblk, tb);
 		currentslot = 0;
 		return true;
+	}
+
+	public void close() {
+		contents.close();
 	}
 }

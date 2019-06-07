@@ -152,6 +152,6 @@ public class IndexJoinExec implements Exec {
 
 	private void resetIndex() {
 		Constant searchkey = e.getVal(joinfield);
-		idx.moveToHead(searchkey);
+		idx.moveToHead(searchkey, "=", false);
 	}
 }

@@ -22,14 +22,13 @@ public class Parser {
 	}
 
 	public Constant constant() {
-		if (lex.matchStringConstant()) // string, varchar
+		if (lex.matchStringConstant()) 			// string, varchar
 			return new StringConstant(lex.eatStringConstant());
-		else if (lex.matchIntLongConstant()) // int, long
-			return new LongConstant(lex.eatIntLongConstant());
 		else if (lex.matchFloatDoubleConstant()) // float, double
 			return new DoubleConstant(lex.eatFloatDoubleConstant());
-		else // null
-		{
+		else if (lex.matchIntLongConstant()) 	// int, long
+			return new LongConstant(lex.eatIntLongConstant());
+		else { // null
 			lex.eatKeyword("null");
 			return null;
 		}
@@ -74,7 +73,7 @@ public class Parser {
 		} else if (lex.matchKeyword("or")) {
 			lex.eatKeyword("or");
 			cond.join(condition());
-			cond.isOr = true;
+			cond.setIsOR(true);
 		}
 		return cond;
 	}

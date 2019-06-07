@@ -19,18 +19,15 @@ public class BPTreePage {
 	private Table tb;
 	private int slotsize;
 	private Page contents;
-	private RecordManager rm;
-	
 	public BPTreePage(Block currentblk, Table tb) {
 		this.currentblk = currentblk;
 		this.tb = tb;
 		slotsize = tb.recordLength();
 		contents = new Page();
 		contents.read(currentblk);
-		rm = new RecordManager(tb);
 	}
 
-	//the place where will data be inserted;
+	// the place where will data be inserted;
 	public int findSlotBefore(Constant searchkey) {
 		int slot = 0;
 		int test = getNumRecs();
@@ -49,7 +46,7 @@ public class BPTreePage {
 		return slotpos(getNumRecs() + 2) >= BLOCK_SIZE;
 	}
 
-	//when the block is full,split the original block to two block
+	// when the block is full,split the original block to two block
 	public Block split(int splitpos, int flag) {
 		Block newblk = appendNew();
 		BPTreePage newpage = new BPTreePage(newblk, tb);
@@ -80,7 +77,7 @@ public class BPTreePage {
 		return getInt(slot, "block");
 	}
 
-	//output directory data to disk
+	// output directory data to disk
 	public void insertDir(int slot, Constant val, int blknum) {
 		insert(slot);
 		setVal(slot, "dataval", val);
@@ -92,7 +89,7 @@ public class BPTreePage {
 		return new RID(getInt(slot, "block"), getInt(slot, "id"));
 	}
 
-	//output leaf data to disk
+	// output leaf data to disk
 	public void insertLeaf(int slot, Constant val, RID rid) {
 		insert(slot);
 		setVal(slot, "dataval", val);
@@ -100,7 +97,7 @@ public class BPTreePage {
 		setInt(slot, "id", rid.id());
 		contents.write(currentblk);
 		int num = getNumRecs();
-		
+
 	}
 
 	public void delete(int slot) {
@@ -109,7 +106,7 @@ public class BPTreePage {
 		setNumRecs(getNumRecs() - 1);
 	}
 
-	//number of record
+	// number of record
 	public int getNumRecs() {
 		return contents.getInt(INT_SIZE);
 	}
@@ -157,7 +154,7 @@ public class BPTreePage {
 		int pos = fldpos(slot, fldname);
 		contents.setInt(pos, val);
 	}
-	
+
 	private void setLong(int slot, String fldname, long val) {
 		int pos = fldpos(slot, fldname);
 		contents.setLong(pos, val);
@@ -177,27 +174,36 @@ public class BPTreePage {
 		int pos = fldpos(slot, fldname);
 		contents.setString(pos, val);
 	}
-	
-	
+
 	private void setVal(int slot, String fldname, Constant val) {
 		int type = tb.schema().type(fldname);
 		String tblname = tb.tableName();
-		String after =tblname.substring(tblname.length() - 4);
-		//if leaf table
+		String after = tblname.substring(tblname.length() - 4);
+		// if leaf table
 //		int test = (Integer) ((Long) val.value()).intValue();
-		if(val.value() instanceof Long ) {
+		if (val.value() instanceof Long) {
 			if (type == INTEGER)
 				setInt(slot, fldname, (Integer) ((Long) val.value()).intValue());
 			else if (type == LONG)
 				setLong(slot, fldname, (Long) val.value());
-			else
-				setString(slot, fldname, (String) val.value());
-		}
-		else { //if directory table
+		} else if (val.value() instanceof Double) {
+			if (type == INTEGER)
+				setInt(slot, fldname, (Integer) ((Double) val.value()).intValue());
+			else if (type == LONG)
+				setLong(slot, fldname, (Long) ((Double) val.value()).longValue());
+			else if (type == FLOAT)
+				setFloat(slot, fldname, (Float) ((Double) val.value()).floatValue());
+			else if (type == DOUBLE)
+				setDouble(slot, fldname, (Double) val.value());
+		} else { // if directory table
 			if (type == INTEGER)
 				setInt(slot, fldname, (Integer) val.value());
 			else if (type == LONG)
 				setLong(slot, fldname, (Long) val.value());
+			else if (type == FLOAT)
+				setFloat(slot, fldname, (Float) val.value());
+			else if (type == DOUBLE)
+				setDouble(slot, fldname, (Double) val.value());
 			else
 				setString(slot, fldname, (String) val.value());
 		}
@@ -207,7 +213,7 @@ public class BPTreePage {
 		contents.setInt(INT_SIZE, n);
 	}
 
-	//make the spare space in specified slot
+	// make the spare space in specified slot
 	private void insert(int slot) {
 		for (int i = getNumRecs(); i >= slot; i--)
 			copyRecord(i, i + 1);
@@ -221,7 +227,11 @@ public class BPTreePage {
 			setVal(to, fldname, getVal(from, fldname));
 	}
 
+<<<<<<< HEAD
 	//transfer the data to dest Block
+=======
+	// transfer the data to dest Block
+>>>>>>> 728a87419862b63b010ce2564f281cc77247fd88
 	private void transferRecs(int slot, BPTreePage dest) {
 		int destslot = 0;
 		while (slot < getNumRecs()) {

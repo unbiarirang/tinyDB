@@ -2,10 +2,16 @@ package tinydb.planner;
 
 import tinydb.exec.UpdateExec;
 import tinydb.exec.consts.Constant;
+import tinydb.exec.consts.IntConstant;
+import tinydb.exec.consts.LongConstant;
+import tinydb.exec.expr.Comparison;
+import tinydb.exec.expr.Condition;
+import tinydb.exec.expr.ConstantExpression;
 import tinydb.index.Index;
 import tinydb.metadata.IndexInfo;
 import tinydb.parse.*;
 import tinydb.plan.*;
+import static tinydb.consts.Types.*;
 import tinydb.record.Schema;
 import tinydb.record.Table;
 import tinydb.server.DBManager;
@@ -43,6 +49,8 @@ public class OptimizedPlanner implements PlannerBase {
 			if (!DBManager.authManager().isAdmin() && !hasPrivilege(tblname, "select"))
 				throw new NoPermisionException("No permission to select on table " + tblname);
 
+			Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
+			correctDataTypes(schema, data.cond());
 			TablePlanner tp = new TablePlanner(tblname, data.cond(), data.lhstables(), fields);
 			tableplanners.add(tp);
 
@@ -180,6 +188,7 @@ public class OptimizedPlanner implements PlannerBase {
 		while (ue.next()) {
 			// delete data record
 			ue.delete();
+			ue.close();
 			
 			// delete index record
 			for (String fldname : fields) {
@@ -197,6 +206,9 @@ public class OptimizedPlanner implements PlannerBase {
 
 	// Optimized (update with index)
 	public int executeModify(ModifyData data) {
+		Schema schema = DBManager.metadataManager().getTableInfo(data.tableName()).schema();
+		correctDataTypes(schema, data.cond());
+
 		Plan p = new TablePlan(data.tableName());
 		p = new SelectPlan(p, data.cond());
 		UpdateExec ue = (UpdateExec) p.exec();
@@ -211,6 +223,7 @@ public class OptimizedPlanner implements PlannerBase {
 		Constant newval, oldval;
 		while (ue.next()) {
 			newval = data.newValue().evaluate(ue);
+			correctDataType(sch, newval, data.targetField());
 			// modify index record
 			for (String fldname : fields) {
 				ii = indexes.get(fldname);
@@ -257,6 +270,7 @@ public class OptimizedPlanner implements PlannerBase {
 			if (!schema.hasField(fldname))
 				throw new NotExistsException("Field (" + fldname + ") not exists!");
 
+			int fldtype = schema.getField(fldname).type();
 			Constant val;
 			try {
 				val = vals.next();
@@ -269,7 +283,30 @@ public class OptimizedPlanner implements PlannerBase {
 			else if (schema.isPk(fldname) == 1 && val == null)
 				throw new BadSyntaxException("PRIMARY KEY(" + fldname + ") cannot be null");
 
-			ue.setVal(fldname, val);
+			
+			switch (fldtype) {
+			case INTEGER:
+				try {
+					ue.setInt(fldname, (int) val.value());
+				} catch (ClassCastException e) {
+					ue.setInt(fldname, ((Double) val.value()).intValue());
+					val = new IntConstant(((Double) val.value()).intValue());
+				}
+				break;
+			case LONG:
+				try {
+					ue.setLong(fldname, (long) val.value());
+				} catch (ClassCastException e) {
+					ue.setLong(fldname, ((Double) val.value()).longValue());
+					val = new LongConstant(((Double) val.value()).longValue());
+				}
+				break;
+			case FLOAT:
+			case DOUBLE:
+			case STRING:
+				ue.setVal(fldname, val);
+				break;
+			}
 
 			ii = indexes.get(fldname);
 			if (ii != null) {
@@ -306,5 +343,41 @@ public class OptimizedPlanner implements PlannerBase {
 				&& !DBManager.authManager().checkUserPrivilege(temp + privilege))
 			return false;
 		return true;
+	}
+	
+	private void correctDataTypes(Schema schema, Condition cond) {
+		for (Comparison term : cond.terms()) {
+			if (term.isLhsFieldName() && !term.isRhsFieldName()) {
+				String fldname = term.getLhsFieldName();
+				Constant val = term.getFieldValue(fldname);
+				int type = schema.type(fldname);
+				if (val.type() != type) {
+					switch (type) {
+					case INTEGER:
+						val = new IntConstant(((Double) val.value()).intValue());
+						term.modifyRhsValue(new ConstantExpression(val));
+						break;
+					case LONG:
+						val = new LongConstant(((Double) val.value()).longValue());
+						term.modifyRhsValue(new ConstantExpression(val));
+						break;
+					}
+
+				}
+			}
+		}
+	}
+	
+	private Constant correctDataType(Schema schema, Constant val, String fldname) {
+		int type = schema.type(fldname);
+		if (val.type() != type) {
+			switch (type) {
+				case INTEGER:
+					return new IntConstant(((Double) val.value()).intValue());
+				case LONG:
+					return new LongConstant(((Double) val.value()).longValue());
+			}
+		}
+		return val;
 	}
 }

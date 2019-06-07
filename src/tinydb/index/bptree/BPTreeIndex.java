@@ -20,6 +20,10 @@ public class BPTreeIndex implements Index {
 	private TableExec te = null;
 	private int leafblknum;
 	private int currentslot;
+	private String relation = null;
+	private boolean isOr = false;
+	private boolean gtpivot = false; // true -> directly return
+	private boolean epivot = false; // true -> ignore
 
 	public BPTreeIndex(String idxname, Schema leafsch) {
 
@@ -75,14 +79,50 @@ public class BPTreeIndex implements Index {
 
 	// get the data, stop searching,when return false;
 	public boolean next() {
+		if (epivot) {// && !isOr) { // the value was found already, do not need to traverse anymore
+			System.out.println("stop traversing^^!(e)");
+			currentslot = 0;
+			return false;
+		}
+
 		while (currentslot <= leaf.contents.getNumRecs()) {
-			Object test = leaf.contents.getDataVal(currentslot);
-			if (leaf.contents.getDataVal(currentslot).compareTo(searchkey) == 0) {
-//				System.out.println("searchkey: " + searchkey.value() + " was found");
+
+			if (gtpivot) { // the rest of values are all greater than searchkey, directly return true
+				System.out.println("found directly^^!(ge)");
+				leaf.setCurrentSlot(currentslot);
+				currentslot++;
+				return true;
+			} else if ((relation.contentEquals(">=") && leaf.contents.getDataVal(currentslot).compareTo(searchkey) >= 0)
+					|| (relation.contentEquals(">")
+							&& leaf.contents.getDataVal(currentslot).compareTo(searchkey) > 0)) {
+				System.out.println("searchkey: " + searchkey.value() + " was found!(gt)");
+				leaf.setCurrentSlot(currentslot);
+				gtpivot = true;
+				currentslot++;
+				return true;
+			} else if ((relation.contentEquals("=")
+					&& leaf.contents.getDataVal(currentslot).compareTo(searchkey) == 0)) {
+				System.out.println("searchkey: " + searchkey.value() + " was found!(e)");
+				leaf.setCurrentSlot(currentslot);
+				currentslot++;
+				epivot = true;
+				return true;
+			} else if ((relation.contentEquals("<=") && leaf.contents.getDataVal(currentslot).compareTo(searchkey) <= 0)
+					|| (relation.contentEquals("<")
+							&& leaf.contents.getDataVal(currentslot).compareTo(searchkey) < 0)) {
+				System.out.println("searchkey: " + searchkey.value() + " was found!(lt)");
 				leaf.setCurrentSlot(currentslot);
 				currentslot++;
 				return true;
 			}
+
+			// the rest of values are all greater than searchkey, do not need to traverse
+			// anymore
+			if (relation.contentEquals("<=") || (relation.contentEquals("<"))) {
+				System.out.println("stop traversing^^!(lt)");
+				break;
+			}
+
 			currentslot++;
 		}
 		currentslot = 0;
@@ -99,12 +139,12 @@ public class BPTreeIndex implements Index {
 		leaf.close();
 		if (e == null)
 			return;
-		
-		//if leaf block is full
+
+		// if leaf block is full
 		BPTreeDir root = new BPTreeDir(rootblk, dirTi);
 		DirEntry e2 = root.insert(e);
-		
-		//if directory block is full
+
+		// if directory block is full
 		if (e2 != null)
 			root.makeNewRoot(e2);
 		root.close();
@@ -126,9 +166,11 @@ public class BPTreeIndex implements Index {
 	}
 
 	// move to the head of leaf block
-	public void moveToHead(Constant searchkey) {
+	public void moveToHead(Constant searchkey, String relation, boolean isOr) {
 		close();
 		this.searchkey = searchkey;
+		this.relation = relation;
+		this.isOr = isOr;
 		beforeFirst(searchkey);
 		te = new TableExec(leafTi);
 		te.moveTo(leafblknum);

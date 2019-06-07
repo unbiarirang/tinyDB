@@ -1,14 +1,29 @@
 package tinydb.exec.consts;
 
+import static tinydb.consts.Types.INTEGER;
+
 public class IntConstant implements Constant {
 	private Integer val;
+	private boolean isNull = false;
 
 	public IntConstant(int n) {
 		val = new Integer(n);
 	}
+	public IntConstant(int n, boolean isNull) {
+		val = new Integer(n);
+		this.isNull = isNull;
+	}
 
 	public Object value() {
 		return val;
+	}
+	
+	public int type() {
+		return INTEGER;
+	}
+	
+	public boolean isNull() {
+		return isNull;
 	}
 
 	@SuppressWarnings("finally")
@@ -29,7 +44,7 @@ public class IntConstant implements Constant {
 		try {
 			ic = (IntConstant) c;
 		} catch (java.lang.ClassCastException e) {
-			ic = new IntConstant(((Long) ((LongConstant) c).value()).intValue());
+			ic = new IntConstant(((Double) ((DoubleConstant) c).value()).intValue());
 		} finally {
 			return val.compareTo(ic.val);
 		}

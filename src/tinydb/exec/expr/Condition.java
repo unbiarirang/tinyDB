@@ -3,6 +3,7 @@ package tinydb.exec.expr;
 import java.util.*;
 
 import tinydb.exec.Exec;
+import tinydb.exec.IndexSelectExec;
 import tinydb.exec.consts.Constant;
 import tinydb.plan.Plan;
 import tinydb.record.Schema;
@@ -15,18 +16,32 @@ import tinydb.util.Utils;
 // Support only all of 'and' combination and all of 'or' combination
 public class Condition {
 	private ArrayList<Comparison> terms = new ArrayList<Comparison>();
-	public boolean isOr = false;
+	private boolean isOr = false;
 
 	public Condition() {
 	}
-
+	
 	public Condition(Comparison t) {
 		terms.add(t);
+	}
+
+	public ArrayList<Comparison> terms() {
+		return terms;
+	}
+	
+	public boolean isOr() {
+		return isOr;
+	}
+
+	public void setIsOR(boolean flag) {
+		isOr = flag;
 	}
 
 	// Join two conditions
 	public void join(Condition cond) {
 		terms.addAll(cond.terms);
+		if (cond.isOr())
+			this.isOr = true;
 	}
 	
 	public void remove(String fldname) {
@@ -45,9 +60,14 @@ public class Condition {
 
 	// Evaluate 'or' combination of all comparisons
 	public boolean isSatisfiedOr(Exec e) {
-		for (Comparison t : terms)
-			if (t.isSatisfied(e))
+		for (Comparison t : terms) {
+			if (t.isSatisfied(e)) 
 				return true;
+			
+//			if (e instanceof IndexSelectExec) {
+//				((IndexSelectExec) e).setSearchKey(t.getRhsValue());
+//			}
+		}
 		return false;
 	}
 
@@ -62,6 +82,7 @@ public class Condition {
 	// subcondition that has all comparisons of specified schema
 	public Condition selectCond(Schema sch) {
 		Condition result = new Condition();
+		result.setIsOR(this.isOr);
 		for (Comparison t : terms) {
 			// case1. a.id = b.id Ignore the condition
 			if (t.isLhsFieldName() && t.isRhsFieldName() && (t.getLhsFieldName().contentEquals(t.getRhsFieldName())))
@@ -82,6 +103,7 @@ public class Condition {
 	// either schema separately.
 	public Condition joinCond(Schema sch1, Schema sch2) {
 		Condition result = new Condition();
+		result.setIsOR(this.isOr);
 		Schema newsch = new Schema();
 		newsch.addAll(sch1);
 		newsch.addAll(sch2);
@@ -106,6 +128,14 @@ public class Condition {
 			Constant c = t.getFieldValue(fldname);
 			if (c != null)
 				return c;
+		}
+		return null;
+	}
+	
+	public String getRelation(String fldname) {
+		for (Comparison t : terms) {
+			if (t.getLhsFieldName().contentEquals(fldname))
+				return t.getRelation();
 		}
 		return null;
 	}

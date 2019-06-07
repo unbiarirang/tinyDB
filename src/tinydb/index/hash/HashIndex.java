@@ -11,6 +11,8 @@ public class HashIndex implements Index {
 	private String idxname;
 	private Schema sch;
 	private Constant searchkey = null;
+	private String relation = null;
+	private boolean isOr = false;
 	private TableExec te = null;
 
 	public HashIndex(String idxname, Schema sch) {
@@ -18,9 +20,11 @@ public class HashIndex implements Index {
 		this.sch = sch;
 	}
 
-	public void moveToHead(Constant searchkey) {
+	public void moveToHead(Constant searchkey, String relation, boolean isOr) {
 		close();
 		this.searchkey = searchkey;
+		this.relation = relation;
+		this.isOr = isOr;
 		int bucket = searchkey.value().hashCode() % NUM_BUCKETS;
 		String tblname = idxname + bucket;
 		Table tb = new Table(tblname, sch);
@@ -45,7 +49,7 @@ public class HashIndex implements Index {
 	}
 
 	public void insert(Constant val, RID rid) {
-		moveToHead(val);
+		moveToHead(val, relation, isOr);
 		te.insert();
 		te.setInt("block", rid.blockNumber());
 		te.setInt("id", rid.id());
@@ -54,16 +58,16 @@ public class HashIndex implements Index {
 	}
 
 	public void delete(Constant val, RID rid) {
-		moveToHead(val);
-		while(next()) {
+		moveToHead(val, relation, isOr);
+		while (next()) {
 			if (getDataRid().equals(rid)) {
 				te.delete();
 				return;
 			}
 		}
 	}
-	
-	public void modify(Constant oldval,Constant newval, RID datarid) {
+
+	public void modify(Constant oldval, Constant newval, RID datarid) {
 		delete(oldval, datarid);
 		insert(newval, datarid);
 	}
@@ -73,7 +77,7 @@ public class HashIndex implements Index {
 			te.close();
 	}
 
-	public static int searchCost(int numblocks, int rpb){
+	public static int searchCost(int numblocks, int rpb) {
 		return numblocks / HashIndex.NUM_BUCKETS;
 	}
 }
