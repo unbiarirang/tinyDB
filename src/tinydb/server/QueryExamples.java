@@ -16,8 +16,8 @@ public class QueryExamples {
 			// analogous to the driver
 			DBManager.initDB("testdb");
 			
-			int[] testcase = { 	  0,	// 0. SELECT
-								  0,	// 1. SELECT - avengers examples
+			int[] testcase = { 	  1,	// 0. SELECT
+								  1,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
@@ -26,15 +26,15 @@ public class QueryExamples {
 								  0,	// 7. SHOW DATABASES
 								  0,	// 8. DROP TABLE tblname
 								  0,	// 9. CREATE INDEX
-								  0,	// 10. Index SELECT
-								  0,	// 11. Index JOIN
-								  0,	// 12. JOIN & SELECT with tbname.attrname
-								  0,	// 13. Natural JOIN
-								  0,	// 14. multiple JOIN
-								  0,	// 15. CREATE USER
-								  0,	// 16. DROP USER
-								  0,	// 17. GRANT PRIVILEGE
-								  0,	// 18. REVOKE PRIVIEGE
+								  1,	// 10. Index SELECT
+								  1,	// 11. Index JOIN
+								  1,	// 12. JOIN & SELECT with tbname.attrname
+								  1,	// 13. Natural JOIN
+								  1,	// 14. multiple JOIN
+								  1,	// 15. DROP USER
+								  1,	// 16. CREATE USER
+								  1,	// 17. GRANT PRIVILEGE
+								  1,	// 18. REVOKE PRIVIEGE
 								  0,	// 19. DELETE
 								  0		// 20. Error tests
 							 };
@@ -127,7 +127,7 @@ public class QueryExamples {
 		DBManager.plannerOpt().executeUpdate(qry1_10);
 		DBManager.plannerOpt().executeUpdate(qry1_11);
 
-		String qry1_12 = "select * from avengers where id = 10;";
+		String qry1_12 = "select * from avengers where name = 'Captain';";
 		p = DBManager.plannerOpt().createQueryPlan(qry1_12);
 		execPlan(p);
 		
@@ -297,12 +297,6 @@ public class QueryExamples {
 		execPlan(p);
 	}
 
-	private static void createUser() throws Exception {
-		String qry = "CREATE USER user1 PASSWORD password";
-		DBManager.plannerOpt().executeUpdate(qry);
-		boolean isOk = DBManager.verifyUser("user1", "password");
-		System.out.println(">>>>>\t" + isOk);
-	}
 
 	private static void dropUser() throws Exception {
 		String qry = "DROP USER user1";
@@ -310,15 +304,28 @@ public class QueryExamples {
 		boolean isOk = DBManager.verifyUser("user1", "password");
 		System.out.println(">>>>>\t" + isOk);
 	}
+	private static void createUser() throws Exception {
+		String qry = "CREATE USER user1 PASSWORD password";
+		DBManager.plannerOpt().executeUpdate(qry);
+		// login as user1
+		boolean isOk = DBManager.verifyUser("user1", "password");
+		System.out.println(">>>>>\t" + isOk);
+	}
 
 	private static void grantPrivilege() throws Exception {
-		String qry = "GRANT * ON TABLE test TO user1";
+		String qry = "GRANT select ON TABLE test TO user1";
 		DBManager.plannerOpt().executeUpdate(qry);
+
+		select1();
 	}
 
 	private static void revokePrivilege() throws Exception {
-		String qry = "REVOKE * ON TABLE test FROM user1";
+		String qry = "REVOKE select ON TABLE test FROM user1";
 		DBManager.plannerOpt().executeUpdate(qry);
+
+//		select1(); // raise permission error
+		// login as admin
+		DBManager.verifyUser(null, null);
 	}
 
 	private static void delete() throws Exception {
@@ -334,7 +341,8 @@ public class QueryExamples {
 	private static void errorTests() throws Exception {
 		String qry14_1 = "drop table TEST";
 		String qry14_4 = "drop table TEST2";
-		String qry14_2 = "create table TEST(a int primary key, b long not null, c float not null, d double, e string(1))";
+		String qry14_2 = "create table TEST(a int primary key, b long not null, c float not null)";
+		String qry14_3 = "insert into test values (1,1,1);";
 		String qryFewValue = "insert into TEST(a, b, c) values (1, 2)";
 		String qryTypeNotMatch = "insert into TEST(a, b, c) values (1, 2, 'string')";
 		String qryNeedPrimaryKey = "insert into TEST(a, b, c) values (null, 2, 3)";
@@ -343,10 +351,13 @@ public class QueryExamples {
 		String qryNeedNotNullValue2 = "insert into TEST(a, c) values (1, 3)";
 		String qryTooManyPk1 = "create table TEST2(a int primary key, b int, primary key (b))";
 		String qryTooManyPk2 = "create table TEST2(a int, b int, primary key (a, b))";
-
+		String tableNotExists = "insert into NOTTEST values (1);";
+		String fieldNotExists = "insert into TEST(a, b, c, d, e) values (1, 1, 1, 1, 1);";
+		
 		DBManager.plannerOpt().executeUpdate(qry14_1);
 		DBManager.plannerOpt().executeUpdate(qry14_4);
 		DBManager.plannerOpt().executeUpdate(qry14_2);
+		DBManager.plannerOpt().executeUpdate(qry14_3);
 //		DBManager.plannerOpt().executeUpdate(qryFewValue);
 //		DBManager.plannerOpt().executeUpdate(qryTypeNotMatch);
 //		DBManager.plannerOpt().executeUpdate(qryNeedPrimaryKey2);
@@ -354,9 +365,12 @@ public class QueryExamples {
 //		DBManager.plannerOpt().executeUpdate(qryNeedNotNullValue2);
 //		DBManager.plannerOpt().executeUpdate(qryTooManyPk1);
 //		DBManager.plannerOpt().executeUpdate(qryTooManyPk2);
+//		DBManager.plannerOpt().executeUpdate(tableNotExists);
+//		DBManager.plannerOpt().executeUpdate(fieldNotExists);
 
-		String qry14_3 = "select * from TEST";
-		p = DBManager.plannerOpt().createQueryPlan(qry14_3);
+		String fieldNotExists2 = "select a,b,c,d,e from TEST";
+		String tableNotExists2 = "select a from NOTTEST;";
+		p = DBManager.plannerOpt().createQueryPlan(tableNotExists2);
 		execPlan(p);
 	}
 

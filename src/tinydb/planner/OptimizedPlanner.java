@@ -10,7 +10,8 @@ import tinydb.record.Schema;
 import tinydb.record.Table;
 import tinydb.server.DBManager;
 import tinydb.util.BadSyntaxException;
-import tinydb.util.Utils;
+import tinydb.util.NoPermisionException;
+import tinydb.util.NotExistsException;
 
 import java.util.*;
 
@@ -34,15 +35,35 @@ public class OptimizedPlanner implements PlannerBase {
 
 		// Step 1: Create a TablePlanner object for each mentioned table
 		for (String tblname : data.tables()) {
+			// Check if table name is valid
+			if (!DBManager.metadataManager().getTableNames().contains(tblname))
+				throw new NotExistsException("Table: " + tblname + " not exists!");
+			
+			// Check user permission
+			if (!DBManager.authManager().isAdmin() && !hasPrivilege(tblname, "select"))
+				throw new NoPermisionException("No permission to select on table " + tblname);
+
 			TablePlanner tp = new TablePlanner(tblname, data.cond(), data.lhstables(), fields);
 			tableplanners.add(tp);
 
 			if (data.isAll())
 				fields.addAll(tp.schema().fields());
 		}
+		
+		// Check if fields are valid
+		for (String fldname : fields) {
+			boolean isExist= false;
+			for (TablePlanner tp : tableplanners) {
+				if (tp.schema().hasField(fldname))
+					isExist = true;
+			}
+			if (!isExist)
+				throw new NotExistsException("Field (" + fldname + ") not exists!");
+		}
 
 		// Step 2: Choose the lowest-size plan to begin the join order
 		Plan currentplan = getLowestSelectPlan();
+
 
 		// Step 3: Repeatedly add a plan to the join order
 		while (!tableplanners.isEmpty()) {
@@ -210,6 +231,9 @@ public class OptimizedPlanner implements PlannerBase {
 	// Optimized (insert with index)
 	public int executeInsert(InsertData data) {
 		String tblname = data.tableName();
+		if (!DBManager.metadataManager().getTableNames().contains(tblname))
+			throw new NotExistsException("Table: " + tblname + " not exists!");
+
 		Plan p = new TablePlan(tblname);
 		
 		Map<String, IndexInfo> indexes = DBManager.metadataManager().getIndexInfo(tblname);
@@ -230,6 +254,9 @@ public class OptimizedPlanner implements PlannerBase {
 		IndexInfo ii;
 		Index idx;
 		for (String fldname : fields) {
+			if (!schema.hasField(fldname))
+				throw new NotExistsException("Field (" + fldname + ") not exists!");
+
 			Constant val;
 			try {
 				val = vals.next();
@@ -270,5 +297,14 @@ public class OptimizedPlanner implements PlannerBase {
 	public int executeCreateIndex(CreateIndexData data) {
 		DBManager.metadataManager().createIndex(data.indexName(), data.tableName(), data.fieldName());
 		return 0;
+	}
+	
+	private boolean hasPrivilege(String tblname, String privilege) {
+		String temp = DBManager.authManager().username() + " " + DBManager.metadataManager().dbname()
+				+ " " + tblname + " ";
+		if (!DBManager.authManager().checkUserPrivilege(temp + "*")
+				&& !DBManager.authManager().checkUserPrivilege(temp + privilege))
+			return false;
+		return true;
 	}
 }
