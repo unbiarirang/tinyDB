@@ -26,6 +26,10 @@ public class Utils {
 				break;
 			} else if (cmd.charAt(i) == '\r' || cmd.charAt(i) == '\n')
 				start++;
+			else if (cmd.charAt(i) == '\0') {
+				fstCmd = cmd.substring(start, i);
+				break;
+			}
 		}
 		return fstCmd;
 	}

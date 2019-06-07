@@ -17,24 +17,24 @@ public class QueryExamples {
 			DBManager.initDB("testdb");
 			
 			int[] testcase = { 	  1,	// 0. SELECT
-								  1,	// 1. SELECT - avengers examples
+								  0,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
-								  1,	// 5. SHOW TABLE tblname
+								  0,	// 5. SHOW TABLE tblname
 								  0,	// 6. SHOW DATABASE dbname
 								  0,	// 7. SHOW DATABASES
 								  0,	// 8. DROP TABLE tblname
 								  0,	// 9. CREATE INDEX
-								  1,	// 10. Index SELECT
-								  1,	// 11. Index JOIN
-								  1,	// 12. JOIN & SELECT with tbname.attrname
-								  1,	// 13. Natural JOIN
-								  1,	// 14. multiple JOIN
-								  1,	// 15. DROP USER
-								  1,	// 16. CREATE USER
-								  1,	// 17. GRANT PRIVILEGE
-								  1,	// 18. REVOKE PRIVIEGE
+								  0,	// 10. Index SELECT
+								  0,	// 11. Index JOIN
+								  0,	// 12. JOIN & SELECT with tbname.attrname
+								  0,	// 13. Natural JOIN
+								  0,	// 14. multiple JOIN
+								  0,	// 15. DROP USER
+								  0,	// 16. CREATE USER
+								  0,	// 17. GRANT PRIVILEGE
+								  0,	// 18. REVOKE PRIVIEGE
 								  0,	// 19. DELETE
 								  0		// 20. Error tests
 							 };
@@ -68,7 +68,7 @@ public class QueryExamples {
 
 	private static void select1() throws Exception {
 		String qry0_1 = "drop table test";
-		String qry0_2 = "create table TEST(a_a int primary key, b long not null, c float)";
+		String qry0_2 = "create table TEST(a int primary key, b long not null, c float)";
 		String qry0_3 = "insert into TEST values (1, 111111111, 1.0)";
 		String qry0_4 = "insert into TEST values (2, 222222222, 2.0)";
 		String qry0_5 = "insert into TEST values (3, 333333333, 3.0)";
@@ -83,10 +83,11 @@ public class QueryExamples {
 		DBManager.plannerOpt().executeUpdate(qry0_6);
 		DBManager.plannerOpt().executeUpdate(qry0_7);
 
-		String qry0_10 = "select * from test";
-
+		String qry0_10 = "select * from test where a > 1";
+		System.out.println(">>>>>>>>>");
 		p = DBManager.plannerOpt().createQueryPlan(qry0_10);
 		execPlan(p);
+		System.out.println("<<<<<<<<<<");
 	}
 
 	private static void select2() throws Exception {

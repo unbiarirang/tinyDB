@@ -3,3 +3,5 @@
 /PasswordUtils.class
 /Tuple.class
 /Utils.class
+/NoPermisionException.class
+/NotExistsException.class

@@ -73,7 +73,7 @@ public class BplusIndex implements Index {
 		leaf = new BplusLeaf(leafblk, leafTi, searchkey);
 	}
 
-	// get the data
+	// get the data, stop searching,when return false;
 	public boolean next() {
 		while (currentslot <= leaf.contents.getNumRecs()) {
 			Object test = leaf.contents.getDataVal(currentslot);

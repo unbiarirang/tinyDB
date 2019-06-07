@@ -100,7 +100,7 @@ public class BplusPage {
 	}
 
 	public void delete(int slot) {
-		for (int i = slot + 1; i < getNumRecs(); i++)
+		for (int i = slot + 1; i <= getNumRecs(); i++)
 			copyRecord(i, i - 1);
 		setNumRecs(getNumRecs() - 1);
 		contents.write(currentblk);

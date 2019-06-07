@@ -31,6 +31,7 @@ public class Swing {
 	public static JFrame Loginframe;
 	public static JFrame Controlframe;
 	public static JPanel ResultPanel;
+	public static JLabel displaytime;
 	public static InputStream input;
 	public static OutputStream output;
 	public static int curpos;
@@ -39,7 +40,7 @@ public class Swing {
 	public static long duration = 0;
 	
 	
-	public static void main(String[] args) throws UnknownHostException, IOException {
+	public static void main(String[] args) throws UnknownHostException, IOException, BadSyntaxException {
 		Socket c_socket = new Socket("127.0.0.1", 8888);
 		InputStream input_data = c_socket.getInputStream();
 		OutputStream output_data = c_socket.getOutputStream();
@@ -131,12 +132,12 @@ public class Swing {
 					input.read(recv);
 					String getto = new String(recv);
 					if(getto.charAt(0) == 'O') {
-						System.out.println(new String(recv));
+//						System.out.println(new String(recv));
 						Loginframe.setVisible(false);
 						Controlframe.setVisible(true);
 					}
 					else {
-						System.out.println("ID or Password is wrong");
+//						System.out.println("ID or Password is wrong");
 					}
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -153,17 +154,20 @@ public class Swing {
 		CMDText.setBounds(100, 0, 600, 200);
 		JButton Run = new JButton("Run");
 		JButton Import = new JButton("Import");
+		displaytime = new JLabel("time: ");
 		Import.setBounds(10, 30, 80, 25);
 		Run.setBounds(720, 30, 60, 25);
+		displaytime.setBounds(700,70,100,25);
 		JFileChooser fc = new JFileChooser();
 		Inputpanel.add(Import);
 		Inputpanel.add(Run);
 		Inputpanel.add(CMDText);
+		Inputpanel.add(displaytime);
 		
 		Import.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser(".");
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "txt");
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "txt","sql");
 				fileChooser.setFileFilter(filter);
 				int returnVal = fileChooser.showOpenDialog(fileChooser);
 				if (returnVal != JFileChooser.APPROVE_OPTION) {
@@ -198,27 +202,35 @@ public class Swing {
 			public void actionPerformed(ActionEvent e) {
 				timecost = 0;
 				String cmd = CMDText.getText();
-				byte[] recvbuffer =  new byte[1024];
+
 				int fst = 0;
 				int curpos = 0;
-				for(int i = 0; i < cmd.length(); i++) {
-					if(cmd.charAt(i) == ';') {
-						String extract = cmd.substring(fst, i);
-						fst = i + 1;
-						try {
-							output.write(extract.getBytes());
-							current = System.currentTimeMillis();
-							input.read(recvbuffer);
-							timecost = timecost + System.currentTimeMillis() - current;
-//							System.out.println("here0!!!" + cmd);
-							ifDisplay((new String(recvbuffer)));
-//							System.out.println((new String(recvbuffer)));
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}	
+				try {
+					for(int i = 0; i < cmd.length(); i++) {
+						if(cmd.charAt(i) == ';') {
+							String extract = cmd.substring(fst, i);
+							fst = i + 1;
+							try {
+								output.write(extract.getBytes());
+								current = System.currentTimeMillis();
+								byte[] recvbuffer =  new byte[1024];
+								input.read(recvbuffer);
+								timecost = timecost + System.currentTimeMillis() - current;
+								displaytime.setText("time: " + timecost + "ms");
+	//							System.out.println("here0!!!" + cmd);
+								ifDisplay((new String(recvbuffer)));
+	//							System.out.println((new String(recvbuffer)));
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}	
+						}
 					}
+				} catch (Exception e3) {
+					System.out.println(e3.getMessage());
+					JOptionPane.showMessageDialog(null, e3.getMessage().toString(), "Error", JOptionPane.ERROR_MESSAGE);
+					return;
 				}
-				System.out.println("timecost:" + timecost);
+				System.out.println("timecost:" + timecost + "ms");
 			}
 		});
 	}
@@ -226,20 +238,25 @@ public class Swing {
 //		String ifSelect = cmd.substring(0, 6);
 //		String ifShow = cmd.substring(0,4);
 		String fstcmd = Utils.parseFirstCmd(cmd);
-		System.out.println("here1!!!" + cmd);
+//		System.out.println("here1!!!" + cmd);
 		if (fstcmd.equals("select")) {
 			placeResult(0, cmd.substring(7, cmd.length()));
 		}
 		else if (fstcmd.contentEquals("show")) {
 			placeResult(1, cmd.substring(5, cmd.length()));
 		}
-		else {
+		else if (fstcmd.contentEquals("updated")){
 			placeResult(2, cmd);
 		}
+		else {
+			placeResult(3, cmd);
+		}
+			
 	}
 
-	private static void placeResult(int type, String cmd) {
-		
+	private static void placeResult(int type, String cmd) throws BadSyntaxException {
+		if(type == 3)
+			throw new BadSyntaxException(cmd);
 		ResultPanel.removeAll();
 		Vector columnNames = new Vector();
 		Vector rowData = new Vector();
@@ -291,6 +308,8 @@ public class Swing {
 					fst = fst + 1;
 					Data.clear();
 				}
+				else if(cmd.charAt(i) == '\0')
+					break;
 			}
 		}
 		else if(type == 1) {
@@ -299,10 +318,17 @@ public class Swing {
 					columnNames.add(cmd.substring(fst, i));
 					fst = i + 1;
 				}
+				else if(cmd.charAt(i) == '\0')
+					break;
 			}
 		}
 		else {
-			columnNames.add("updated");
+			for (int i = 0; i < cmd.length() ; i++) {
+				if(cmd.charAt(i) == '\0') {
+					columnNames.add(cmd.substring(0, i));
+					break;
+				}
+			}
 		}
 				
 		JTable table = new JTable(rowData, columnNames);
@@ -329,8 +355,11 @@ public class Swing {
 		table.getTableHeader().setResizingAllowed(true);
 		table.getTableHeader().setReorderingAllowed(false); 
 		
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
+		if(type == 0 || type == 1)
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		else {
+			table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		}
 		
 		table.setPreferredScrollableViewportSize(new Dimension(600, 300));
 		table.setLocation(-100, 0);

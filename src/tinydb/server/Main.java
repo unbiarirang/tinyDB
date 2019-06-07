@@ -33,10 +33,15 @@ public class Main {
 		input = input_data;
 
 		while (true) {
-			byte[] recvbuffer = new byte[1024];
-			input.read(recvbuffer);
-			System.out.println(new String(recvbuffer));
-			exec(new String(recvbuffer));
+			try {
+				byte[] recvbuffer = new byte[1024];
+				input.read(recvbuffer);
+				System.out.println(new String(recvbuffer));
+				exec(new String(recvbuffer));
+			}
+			catch(Exception e) {
+				output.write(e.toString().getBytes());
+			}
 		}
 	}
 
@@ -97,9 +102,12 @@ public class Main {
 				}
 				output.write(contents.getBytes());
 				break;
+			default :
+				output.write("BadSyntaxException".getBytes());
+				return;
 		}
-		if(!fstCmd.equals("login") && !fstCmd.equals("select") && !fstCmd.equals("show"))
-			output.write("completed ".getBytes());
+		if(!fstCmd.equals("login") && !fstCmd.equals("select") && !fstCmd.equals("show")) 
+			output.write("updated ".getBytes());
 	}
 	private static void execPlan(Plan p) throws Exception {
 		Exec e;
