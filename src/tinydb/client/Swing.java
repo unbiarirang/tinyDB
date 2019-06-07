@@ -212,25 +212,25 @@ public class Swing {
 							fst = i + 1;
 							try {
 								output.write(extract.getBytes());
-								current = System.currentTimeMillis();
 								byte[] recvbuffer =  new byte[1024];
+								current = System.currentTimeMillis();
 								input.read(recvbuffer);
 								timecost = timecost + System.currentTimeMillis() - current;
 								displaytime.setText("time: " + timecost + "ms");
-	//							System.out.println("here0!!!" + cmd);
+//							System.out.println("here0!!!" + cmd);
 								ifDisplay((new String(recvbuffer)));
-	//							System.out.println((new String(recvbuffer)));
+//							System.out.println((new String(recvbuffer)));
 							} catch (IOException e1) {
 								e1.printStackTrace();
 							}	
 						}
 					}
 				} catch (Exception e3) {
-					System.out.println(e3.getMessage());
+//					System.out.println(e3.getMessage());
 					JOptionPane.showMessageDialog(null, e3.getMessage().toString(), "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				System.out.println("timecost:" + timecost + "ms");
+//				System.out.println("timecost:" + timecost + "ms");
 			}
 		});
 	}

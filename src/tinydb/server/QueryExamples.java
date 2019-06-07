@@ -1,21 +1,25 @@
 package tinydb.server;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import tinydb.exec.Exec;
 import tinydb.exec.ProjectExec;
 import tinydb.plan.*;
+import tinydb.planner.PlannerBase;
 import tinydb.server.DBManager;
 
 public class QueryExamples {
-	static Plan p;
+	public static Plan p;
+	public static Exec e;
+	public static PlannerBase plannerOpt;
+
 	public static void main(String[] args) {
+		plannerOpt = DBManager.plannerOpt();
+
 		try {
 			// analogous to the driver
 			DBManager.initDB("testdb");
-			
+
 			int[] testcase = { 	  1,	// 0. SELECT
 								  0,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
@@ -75,17 +79,17 @@ public class QueryExamples {
 		String qry0_6 = "insert into TEST values (4, 444444444, 4.0)";
 		String qry0_7 = "insert into TEST values (5, 555555555, null)";
 
-		DBManager.plannerOpt().executeUpdate(qry0_1);
-		DBManager.plannerOpt().executeUpdate(qry0_2);
-		DBManager.plannerOpt().executeUpdate(qry0_3);
-		DBManager.plannerOpt().executeUpdate(qry0_4);
-		DBManager.plannerOpt().executeUpdate(qry0_5);
-		DBManager.plannerOpt().executeUpdate(qry0_6);
-		DBManager.plannerOpt().executeUpdate(qry0_7);
+		plannerOpt.executeUpdate(qry0_1);
+		plannerOpt.executeUpdate(qry0_2);
+		plannerOpt.executeUpdate(qry0_3);
+		plannerOpt.executeUpdate(qry0_4);
+		plannerOpt.executeUpdate(qry0_5);
+		plannerOpt.executeUpdate(qry0_6);
+		plannerOpt.executeUpdate(qry0_7);
 
-		String qry0_10 = "select * from test where a > 1";
-		System.out.println(">>>>>>>>>");
-		p = DBManager.plannerOpt().createQueryPlan(qry0_10);
+		String qry0_10 = "select * from test where a_a < 3";
+
+		p = plannerOpt.createQueryPlan(qry0_10);
 		execPlan(p);
 		System.out.println("<<<<<<<<<<");
 	}
@@ -93,17 +97,17 @@ public class QueryExamples {
 	private static void select2() throws Exception {
 		String qry1_1 = "drop table avengers";
 		String qry1_0 = "drop table villain";
-		String qry1_2 = "create table avengers" + 
-				"	(id			 int not null," + 
+		String qry1_2 = "create table avengers" +
+				"	(id			 int not null," +
 				"	 name	     string(32) not null," +
-				"	 power	     int not null," + 
+				"	 power	     int not null," +
 				"	 weight      float," + "    height      double," +
 				"	 primary key (ID)" + "	);";
-		String qry1 = "create table villain" + 
-				"	(id			int not null, " + 
-				"	 name			string(32) not null, " + 
-				"	 power	int not null," + 
-				"	 primary key (ID)" + 
+		String qry1 = "create table villain" +
+				"	(id			int not null, " +
+				"	 name			string(32) not null, " +
+				"	 power	int not null," +
+				"	 primary key (ID)" +
 				"	);";
 		String qry1_3 = "insert into avengers values (10, 'Captain', 50, 78.1, 1.85);";
 		String qry1_4 = "insert into avengers values (3, 'Thor', 90, 92.1, 1.89);";
@@ -114,77 +118,77 @@ public class QueryExamples {
 		String qry1_9 = "INSERT INTO villain VALUES (2, 'Red Skull', 40);";
 		String qry1_10 = "INSERT INTO villain VALUES (3, 'Hella', 90);";
 		String qry1_11 = "INSERT INTO villain VALUES (4, 'monster', 10);";
-		DBManager.plannerOpt().executeUpdate(qry1_1);
-		DBManager.plannerOpt().executeUpdate(qry1_0);
-		DBManager.plannerOpt().executeUpdate(qry1_2);
-		DBManager.plannerOpt().executeUpdate(qry1);
-		DBManager.plannerOpt().executeUpdate(qry1_3);
-		DBManager.plannerOpt().executeUpdate(qry1_4);
-		DBManager.plannerOpt().executeUpdate(qry1_5);
-		DBManager.plannerOpt().executeUpdate(qry1_6);
-		DBManager.plannerOpt().executeUpdate(qry1_7);
-		DBManager.plannerOpt().executeUpdate(qry1_8);
-		DBManager.plannerOpt().executeUpdate(qry1_9);
-		DBManager.plannerOpt().executeUpdate(qry1_10);
-		DBManager.plannerOpt().executeUpdate(qry1_11);
+		plannerOpt.executeUpdate(qry1_1);
+		plannerOpt.executeUpdate(qry1_0);
+		plannerOpt.executeUpdate(qry1_2);
+		plannerOpt.executeUpdate(qry1);
+		plannerOpt.executeUpdate(qry1_3);
+		plannerOpt.executeUpdate(qry1_4);
+		plannerOpt.executeUpdate(qry1_5);
+		plannerOpt.executeUpdate(qry1_6);
+		plannerOpt.executeUpdate(qry1_7);
+		plannerOpt.executeUpdate(qry1_8);
+		plannerOpt.executeUpdate(qry1_9);
+		plannerOpt.executeUpdate(qry1_10);
+		plannerOpt.executeUpdate(qry1_11);
 
 		String qry1_12 = "select * from avengers where name = 'Captain';";
-		p = DBManager.plannerOpt().createQueryPlan(qry1_12);
+		p = plannerOpt.createQueryPlan(qry1_12);
 		execPlan(p);
-		
+
 		String qry1_13 = "select * from villain;";
-		p = DBManager.plannerOpt().createQueryPlan(qry1_13);
-//		execPlan(p);
-		
+		p = plannerOpt.createQueryPlan(qry1_13);
+		execPlan(p);
+
 		String qry = "select avengers.name, villain.name, villain.power " +
 				 "from avengers join villain on avengers.power = villain.power " +
 				 "where villain.power > 40;";
-	
-		p = DBManager.plannerOpt().createQueryPlan(qry);
-//		execPlan(p);
+
+		p = plannerOpt.createQueryPlan(qry);
+		execPlan(p);
 	}
 
 	private static void createDatabase() throws Exception {
 		String qry2 = "create database testdb2";
-		DBManager.plannerOpt().executeUpdate(qry2);
+		plannerOpt.executeUpdate(qry2);
 	}
 
 	private static void useDatabase() throws Exception {
 		String qry3 = "use database testdb";
-		DBManager.plannerOpt().executeUpdate(qry3);
+		plannerOpt.executeUpdate(qry3);
 	}
 
 	private static void dropDatabase() throws Exception {
 		String qry4 = "drop database testdb2";
-		DBManager.plannerOpt().executeUpdate(qry4);
+		plannerOpt.executeUpdate(qry4);
 	}
 
 	private static void showTable() throws Exception {
 		String qry5_0 = "show table avengers;";
-		ArrayList<String> tableFields = DBManager.plannerOpt().executeShow(qry5_0);
+		ArrayList<String> tableFields = plannerOpt.executeShow(qry5_0);
 		System.out.println(">>>>>\t" + tableFields);
 	}
 
 	private static void showDatabase() throws Exception {
 		String qry5 = "show database testdb";
-		ArrayList<String> tableNames = DBManager.plannerOpt().executeShow(qry5);
+		ArrayList<String> tableNames = plannerOpt.executeShow(qry5);
 		System.out.println(">>>>>\t" + tableNames);
 	}
 
 	private static void showDatabases() throws Exception {
 		String qry6 = "show databases";
-		ArrayList<String> dbNames = DBManager.plannerOpt().executeShow(qry6);
+		ArrayList<String> dbNames = plannerOpt.executeShow(qry6);
 		System.out.println(">>>>>\t" + dbNames);
 	}
 
 	private static void dropTable() throws Exception {
 		String qry7 = "drop table TEST";
-		DBManager.plannerOpt().executeUpdate(qry7);
+		plannerOpt.executeUpdate(qry7);
 	}
 
 	private static void createIndex() throws Exception {
 		String qry9 = "create index TESTIDX on JOINTEST1 (a)";
-		DBManager.plannerOpt().executeUpdate(qry9);
+		plannerOpt.executeUpdate(qry9);
 	}
 
 	private static void indexSelect() throws Exception {
@@ -197,18 +201,18 @@ public class QueryExamples {
 		String qry13_7 = "delete from JOINTEST1 where id1 = 11";
 		String qry13_8 = "update JOINTEST1 set a='ddddd' where a='ccccc'";
 
-		DBManager.plannerOpt().executeUpdate(qry13_1);
-		DBManager.plannerOpt().executeUpdate(qry13_2);
-		DBManager.plannerOpt().executeUpdate(qry13_3);
-		DBManager.plannerOpt().executeUpdate(qry13_4);
-		DBManager.plannerOpt().executeUpdate(qry13_5);
-		DBManager.plannerOpt().executeUpdate(qry13_6);
-		DBManager.plannerOpt().executeUpdate(qry13_7);
-		DBManager.plannerOpt().executeUpdate(qry13_8);
+		plannerOpt.executeUpdate(qry13_1);
+		plannerOpt.executeUpdate(qry13_2);
+		plannerOpt.executeUpdate(qry13_3);
+		plannerOpt.executeUpdate(qry13_4);
+		plannerOpt.executeUpdate(qry13_5);
+		plannerOpt.executeUpdate(qry13_6);
+		plannerOpt.executeUpdate(qry13_7);
+		plannerOpt.executeUpdate(qry13_8);
 
 		String qry13_10 = "select id1, a from JOINTEST1 where a = 'ddddd'";
 
-		p = DBManager.plannerOpt().createQueryPlan(qry13_10);
+		p = plannerOpt.createQueryPlan(qry13_10);
 		execPlan(p);
 	}
 
@@ -216,23 +220,23 @@ public class QueryExamples {
 		String qry13_1 = "drop table JOINTEST1";
 		String qry13_2 = "drop table JOINTEST2";
 		String qry13_3 = "create table JOINTEST1(id1 int, a string(5), primary key(id1))";
-		String qry13_4 = "create table JOINTEST2(id2 int, b string(5), primary key(id2))";
+		String qry13_4 = "create table JOINTEST2(id2 int, b string(5))";
 		String qry13_5 = "insert into JOINTEST1(id1, a) values (1, 'aaaaa')";
 		String qry13_6 = "insert into JOINTEST1(id1, a) values (2, 'bbbbb')";
 		String qry13_7 = "insert into JOINTEST2(id2, b) values (1, 'ccccc')";
 		String qry13_8 = "insert into JOINTEST2(id2, b) values (2, 'ddddd')";
 
-		DBManager.plannerOpt().executeUpdate(qry13_1);
-		DBManager.plannerOpt().executeUpdate(qry13_2);
-		DBManager.plannerOpt().executeUpdate(qry13_3);
-		DBManager.plannerOpt().executeUpdate(qry13_4);
-		DBManager.plannerOpt().executeUpdate(qry13_5);
-		DBManager.plannerOpt().executeUpdate(qry13_6);
-		DBManager.plannerOpt().executeUpdate(qry13_7);
-		DBManager.plannerOpt().executeUpdate(qry13_4);
-		DBManager.plannerOpt().executeUpdate(qry13_8);
-		String qry13_10 = "select id1, a, b from JOINTEST1 join JOINTEST2 on id1 = id2";
-		p = DBManager.plannerOpt().createQueryPlan(qry13_10);
+		plannerOpt.executeUpdate(qry13_1);
+		plannerOpt.executeUpdate(qry13_2);
+		plannerOpt.executeUpdate(qry13_3);
+		plannerOpt.executeUpdate(qry13_4);
+		plannerOpt.executeUpdate(qry13_5);
+		plannerOpt.executeUpdate(qry13_6);
+		plannerOpt.executeUpdate(qry13_7);
+		plannerOpt.executeUpdate(qry13_4);
+		plannerOpt.executeUpdate(qry13_8);
+		String qry13_10 = "select id1, a, b from JOINTEST2 join JOINTEST1 on id1 = id2";
+		p = plannerOpt.createQueryPlan(qry13_10);
 		execPlan(p);
 	}
 
@@ -245,24 +249,24 @@ public class QueryExamples {
 		String qry13_6 = "insert into JOINTEST1(id, a) values (10, 10)";
 		String qry13_7 = "insert into JOINTEST2(id, b) values (1, 1111)";
 		String qry13_9 = "insert into JOINTEST2(id, b) values (10, 1000)";
-		DBManager.plannerOpt().executeUpdate(qry13_1);
-		DBManager.plannerOpt().executeUpdate(qry13_2);
-		DBManager.plannerOpt().executeUpdate(qry13_3);
-		DBManager.plannerOpt().executeUpdate(qry13_4);
-		DBManager.plannerOpt().executeUpdate(qry13_5);
-		DBManager.plannerOpt().executeUpdate(qry13_6);
-		DBManager.plannerOpt().executeUpdate(qry13_7);
-		DBManager.plannerOpt().executeUpdate(qry13_9);
+		plannerOpt.executeUpdate(qry13_1);
+		plannerOpt.executeUpdate(qry13_2);
+		plannerOpt.executeUpdate(qry13_3);
+		plannerOpt.executeUpdate(qry13_4);
+		plannerOpt.executeUpdate(qry13_5);
+		plannerOpt.executeUpdate(qry13_6);
+		plannerOpt.executeUpdate(qry13_7);
+		plannerOpt.executeUpdate(qry13_9);
 
 		String qry13_10 = "select JOINTEST1.id, JOINTEST1.a, JOINTEST2.b from JOINTEST1 "
 				+ "join JOINTEST2 on JOINTEST1.id = JOINTEST2.id";
-		p = DBManager.plannerOpt().createQueryPlan(qry13_10);
+		p = plannerOpt.createQueryPlan(qry13_10);
 		execPlan(p);
 	}
 
 	private static void naturalJoin() throws Exception {
 		String qry13 = "select id, a, b from JOINTEST1 natural join JOINTEST2";
-		p = DBManager.plannerOpt().createQueryPlan(qry13);
+		p = plannerOpt.createQueryPlan(qry13);
 		execPlan(p);
 	}
 
@@ -279,35 +283,35 @@ public class QueryExamples {
 		String qry8_10 = "insert into JOINTEST2(id2, b) values (2, 'ddddd')";
 		String qry8_11 = "insert into JOINTEST3(id3, c) values (1, 'eeeee')";
 		String qry8_12 = "insert into JOINTEST3(id3, c) values (2, 'fffff')";
-		DBManager.plannerOpt().executeUpdate(qry8_1);
-		DBManager.plannerOpt().executeUpdate(qry8_2);
-		DBManager.plannerOpt().executeUpdate(qry8_3);
-		DBManager.plannerOpt().executeUpdate(qry8_4);
-		DBManager.plannerOpt().executeUpdate(qry8_5);
-		DBManager.plannerOpt().executeUpdate(qry8_6);
-		DBManager.plannerOpt().executeUpdate(qry8_7);
-		DBManager.plannerOpt().executeUpdate(qry8_8);
-		DBManager.plannerOpt().executeUpdate(qry8_9);
-		DBManager.plannerOpt().executeUpdate(qry8_10);
-		DBManager.plannerOpt().executeUpdate(qry8_11);
-		DBManager.plannerOpt().executeUpdate(qry8_12);
+		plannerOpt.executeUpdate(qry8_1);
+		plannerOpt.executeUpdate(qry8_2);
+		plannerOpt.executeUpdate(qry8_3);
+		plannerOpt.executeUpdate(qry8_4);
+		plannerOpt.executeUpdate(qry8_5);
+		plannerOpt.executeUpdate(qry8_6);
+		plannerOpt.executeUpdate(qry8_7);
+		plannerOpt.executeUpdate(qry8_8);
+		plannerOpt.executeUpdate(qry8_9);
+		plannerOpt.executeUpdate(qry8_10);
+		plannerOpt.executeUpdate(qry8_11);
+		plannerOpt.executeUpdate(qry8_12);
 
 		String qry8 = "select id1, a, b, c " + "from JOINTEST1 " + "join JOINTEST2 on id1 = id2 "
 				+ "join JOINTEST3 on id2 = id3 where id1 = 1";
-		p = DBManager.plannerOpt().createQueryPlan(qry8);
+		p = plannerOpt.createQueryPlan(qry8);
 		execPlan(p);
 	}
 
 
 	private static void dropUser() throws Exception {
 		String qry = "DROP USER user1";
-		DBManager.plannerOpt().executeUpdate(qry);
+		plannerOpt.executeUpdate(qry);
 		boolean isOk = DBManager.verifyUser("user1", "password");
 		System.out.println(">>>>>\t" + isOk);
 	}
 	private static void createUser() throws Exception {
 		String qry = "CREATE USER user1 PASSWORD password";
-		DBManager.plannerOpt().executeUpdate(qry);
+		plannerOpt.executeUpdate(qry);
 		// login as user1
 		boolean isOk = DBManager.verifyUser("user1", "password");
 		System.out.println(">>>>>\t" + isOk);
@@ -315,14 +319,14 @@ public class QueryExamples {
 
 	private static void grantPrivilege() throws Exception {
 		String qry = "GRANT select ON TABLE test TO user1";
-		DBManager.plannerOpt().executeUpdate(qry);
+		plannerOpt.executeUpdate(qry);
 
 		select1();
 	}
 
 	private static void revokePrivilege() throws Exception {
 		String qry = "REVOKE select ON TABLE test FROM user1";
-		DBManager.plannerOpt().executeUpdate(qry);
+		plannerOpt.executeUpdate(qry);
 
 //		select1(); // raise permission error
 		// login as admin
@@ -331,11 +335,11 @@ public class QueryExamples {
 
 	private static void delete() throws Exception {
 		String qry = "DELETE FROM avengers WHERE name = 'Groot';";
-		DBManager.plannerOpt().executeUpdate(qry);
+		plannerOpt.executeUpdate(qry);
 
 		String qry1 = "select * from avengers";
 
-		p = DBManager.plannerOpt().createQueryPlan(qry1);
+		p = plannerOpt.createQueryPlan(qry1);
 		execPlan(p);
 	}
 
@@ -354,32 +358,30 @@ public class QueryExamples {
 		String qryTooManyPk2 = "create table TEST2(a int, b int, primary key (a, b))";
 		String tableNotExists = "insert into NOTTEST values (1);";
 		String fieldNotExists = "insert into TEST(a, b, c, d, e) values (1, 1, 1, 1, 1);";
-		
-		DBManager.plannerOpt().executeUpdate(qry14_1);
-		DBManager.plannerOpt().executeUpdate(qry14_4);
-		DBManager.plannerOpt().executeUpdate(qry14_2);
-		DBManager.plannerOpt().executeUpdate(qry14_3);
-//		DBManager.plannerOpt().executeUpdate(qryFewValue);
-//		DBManager.plannerOpt().executeUpdate(qryTypeNotMatch);
-//		DBManager.plannerOpt().executeUpdate(qryNeedPrimaryKey2);
-//		DBManager.plannerOpt().executeUpdate(qryNeedNotNullValue);
-//		DBManager.plannerOpt().executeUpdate(qryNeedNotNullValue2);
-//		DBManager.plannerOpt().executeUpdate(qryTooManyPk1);
-//		DBManager.plannerOpt().executeUpdate(qryTooManyPk2);
-//		DBManager.plannerOpt().executeUpdate(tableNotExists);
-//		DBManager.plannerOpt().executeUpdate(fieldNotExists);
+
+		plannerOpt.executeUpdate(qry14_1);
+		plannerOpt.executeUpdate(qry14_4);
+		plannerOpt.executeUpdate(qry14_2);
+		plannerOpt.executeUpdate(qry14_3);
+//		plannerOpt.executeUpdate(qryFewValue);
+//		plannerOpt.executeUpdate(qryTypeNotMatch);
+//		plannerOpt.executeUpdate(qryNeedPrimaryKey2);
+//		plannerOpt.executeUpdate(qryNeedNotNullValue);
+//		plannerOpt.executeUpdate(qryNeedNotNullValue2);
+//		plannerOpt.executeUpdate(qryTooManyPk1);
+//		plannerOpt.executeUpdate(qryTooManyPk2);
+//		plannerOpt.executeUpdate(tableNotExists);
+//		plannerOpt.executeUpdate(fieldNotExists);
 
 		String fieldNotExists2 = "select a,b,c,d,e from TEST";
 		String tableNotExists2 = "select a from NOTTEST;";
-		p = DBManager.plannerOpt().createQueryPlan(tableNotExists2);
+		p = plannerOpt.createQueryPlan(tableNotExists2);
 		execPlan(p);
 	}
 
 	private static void execPlan(Plan p) throws Exception {
-		Exec e;
 		e = p.exec();
 		System.out.println(((ProjectExec) e).tables());
-		String test = ((ProjectExec) e).tables();
 		System.out.println(((ProjectExec) e).fields());
 
 		while (e.next()) {

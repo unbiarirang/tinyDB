@@ -78,11 +78,12 @@ public class Comparison {
 			lhsval = lhs.evaluateWithTable(e, tblname1);
 			rhsval = rhs.evaluateWithTable(e, tblname2);
 		}
-		// e.g. tblname.fldname = 1
+		// e.g. 1 = tblname.fldname
 		else if (tblname1 != null && (tblname2 == null || tblname2 == "") && tblname1 != "") {
 			lhsval = lhs.evaluateWithTable(e, tblname1);
 			rhsval = rhs.evaluate(e);
 		}
+		// e.g. tblname.fldname = 1
 		else if (tblname2 != null && (tblname1 == null || tblname1 == "") && tblname2 != "") {
 			lhsval = lhs.evaluate(e);
 			rhsval = rhs.evaluateWithTable(e, tblname2);

@@ -1,4 +1,4 @@
-package tinydb.index.bplus;
+package tinydb.index.bptree;
 
 import static tinydb.consts.Types.*;
 import static tinydb.file.Page.*;
@@ -14,14 +14,14 @@ import tinydb.exec.consts.IntConstant;
 import tinydb.exec.consts.LongConstant;
 import tinydb.exec.consts.StringConstant;
 
-public class BplusPage {
+public class BPTreePage {
 	private Block currentblk;
 	private Table tb;
 	private int slotsize;
 	private Page contents;
 	private RecordManager rm;
 	
-	public BplusPage(Block currentblk, Table tb) {
+	public BPTreePage(Block currentblk, Table tb) {
 		this.currentblk = currentblk;
 		this.tb = tb;
 		slotsize = tb.recordLength();
@@ -49,7 +49,7 @@ public class BplusPage {
 	//when the block is full,split the original block to two block
 	public Block split(int splitpos, int flag) {
 		Block newblk = appendNew();
-		BplusPage newpage = new BplusPage(newblk, tb);
+		BPTreePage newpage = new BPTreePage(newblk, tb);
 		transferRecs(splitpos, newpage);
 		newpage.setFlag(flag);
 		newpage.close();
@@ -218,7 +218,7 @@ public class BplusPage {
 	}
 
 	//transfer the data to dest Block
-	private void transferRecs(int slot, BplusPage dest) {
+	private void transferRecs(int slot, BPTreePage dest) {
 		int destslot = 0;
 		while (slot < getNumRecs()) {
 			dest.insert(destslot);

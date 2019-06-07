@@ -2,10 +2,8 @@ package tinydb.plan;
 
 import tinydb.server.DBManager;
 import tinydb.exec.*;
-import tinydb.exec.consts.Constant;
 import tinydb.metadata.*;
 import tinydb.record.*;
-import static tinydb.consts.Types.*;
 
 import java.util.HashMap;
 import java.util.Map;

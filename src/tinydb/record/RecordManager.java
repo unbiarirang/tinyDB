@@ -64,27 +64,27 @@ public class RecordManager {
 
 	// Sets the value of the specified field in the current record.
 	public void setInt(String fldname, int val) {
-		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
+//		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setInt(fldname, val);
 	}
 
 	public void setLong(String fldname, long val) {
-		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
+//		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setLong(fldname, val);
 	}
 
 	public void setFloat(String fldname, float val) {
-		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
+//		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setFloat(fldname, val);
 	}
 
 	public void setDouble(String fldname, double val) {
-		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
+//		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setDouble(fldname, val);
 	}
 
 	public void setString(String fldname, String val) {
-		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
+//		System.out.println(tb.tableName() + "\t" + fldname + "\t" + val);
 		rc.setString(fldname, val);
 	}
 	
@@ -115,7 +115,7 @@ public class RecordManager {
 
 	// Delete current record.
 	public void delete() {
-		System.out.println("delete record from " + tb.tableName());
+//		System.out.println("delete record from " + tb.tableName());
 		rc.delete();
 		rc.write();
 	}

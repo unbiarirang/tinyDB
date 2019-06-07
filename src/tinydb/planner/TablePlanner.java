@@ -63,6 +63,7 @@ class TablePlanner {
 			Constant val = cond.getFieldValue(fldname);
 			if (val != null) {
 				IndexInfo ii = indexes.get(fldname);
+				//cond.remove(fldname);
 				return new IndexSelectPlan(plan, ii, val);
 			}
 		}

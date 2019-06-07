@@ -1,4 +1,4 @@
-package tinydb.server;
+	package tinydb.server;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,7 +36,7 @@ public class Main {
 			try {
 				byte[] recvbuffer = new byte[1024];
 				input.read(recvbuffer);
-				System.out.println(new String(recvbuffer));
+//				System.out.println(new String(recvbuffer));
 				exec(new String(recvbuffer));
 			}
 			catch(Exception e) {
@@ -49,7 +49,7 @@ public class Main {
 		Plan p;
 		Exec e;
 		String fstCmd = Utils.parseFirstCmd(cmd);
-		System.out.println(cmd);
+//		System.out.println(cmd);
 
 		fstCmd = fstCmd.toLowerCase();
 		switch (fstCmd) {
@@ -61,19 +61,19 @@ public class Main {
 				String id = info[1];
 				String pw = info[2];
 				dm.initDB(db);
-				System.out.println("id:" + id);
-				System.out.println("pw:" + pw);
+//				System.out.println("id:" + id);
+//				System.out.println("pw:" + pw);
 				if(id.equals("admin") && pw.equals("admin")) {
 					output.write("OK".getBytes());
 					break;
 				}
 				if(DBManager.verifyUser(id, pw) == true) {
-					System.out.println("ok");
+//					System.out.println("ok");
 					output.write("OK".getBytes());
 				}
 				else {
 					output.write("NO".getBytes());
-					System.out.println("NO".getBytes());
+//					System.out.println("NO".getBytes());
 				}
 				break;
 				// Just for login, cmd is not a SQL
@@ -97,7 +97,8 @@ public class Main {
 			case "show":
 				ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
 				String contents = "show ";
-				for(int i = 0; i < names.size(); i++) {
+				int size = names.size();
+				for(int i = 0; i < size; i++) {
 					contents = contents + names.get(i) + "\n";
 				}
 				output.write(contents.getBytes());
@@ -120,7 +121,7 @@ public class Main {
 		while (e.next()) {
 			String res = e.getAllVal();
 			contents = contents + res + "\n";
-			System.out.println(">>>>>\t" + res);
+//			System.out.println(">>>>>\t" + res);
 		}
 		output.write(contents.getBytes());
 		e.close();

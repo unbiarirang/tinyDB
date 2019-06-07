@@ -1,19 +1,19 @@
-package tinydb.index.bplus;
+package tinydb.index.bptree;
 
 import tinydb.exec.consts.Constant;
 import tinydb.file.Block;
 import tinydb.record.*;
 
-public class BplusLeaf {
+public class BPTreeLeaf {
 	private Table tb;
 	private Constant searchkey;
-	public BplusPage contents;
+	public BPTreePage contents;
 	private int currentslot;
 
-	public BplusLeaf(Block blk, Table tb, Constant searchkey) {
+	public BPTreeLeaf(Block blk, Table tb, Constant searchkey) {
 		this.tb = tb;
 		this.searchkey = searchkey;
-		contents = new BplusPage(blk, tb);
+		contents = new BPTreePage(blk, tb);
 		currentslot = contents.findSlotBefore(searchkey);
 	}
 
@@ -98,7 +98,7 @@ public class BplusLeaf {
 			return false;
 		contents.close();
 		Block nextblk = new Block(tb.fileName(), flag);
-		contents = new BplusPage(nextblk, tb);
+		contents = new BPTreePage(nextblk, tb);
 		currentslot = 0;
 		return true;
 	}

@@ -7,3 +7,7 @@
 /BplusIndex.class
 /BplusLeaf.class
 /BplusPage.class
+/BPTreeDir.class
+/BPTreeIndex.class
+/BPTreeLeaf.class
+/BPTreePage.class
