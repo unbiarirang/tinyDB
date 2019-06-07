@@ -14,7 +14,7 @@ public class QueryExamples {
 	public static PlannerBase plannerOpt;
 
 	public static void main(String[] args) {
-		plannerOpt = DBManager.plannerOpt();
+		plannerOpt = DBManager.planner();
 
 		try {
 			// analogous to the driver
@@ -167,11 +167,13 @@ public class QueryExamples {
 		p = plannerOpt.createQueryPlan(qry);
 		execPlan(p);
 
-		qry = "select * from avengers where power = 90 or name = 'Captain' or height < 1.0";
+		System.out.println("expected: * fields of 'Captain', 'Thor', 'rocket'");
+		qry = "select * from avengers where id = 3 or name = 'Captain' or height < 1.0";
 		p = plannerOpt.createQueryPlan(qry);
 		execPlan(p);
 		
-		qry = "select * from avengers where id >= 1"; // FIXME
+		System.out.println("expected: * fields of 'Thor', 'IronMan'");
+		qry = "select * from avengers where id >= 1 and weight >= 80";
 		p = plannerOpt.createQueryPlan(qry);
 		execPlan(p);
 	}

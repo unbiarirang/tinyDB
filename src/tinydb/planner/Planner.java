@@ -1,5 +1,11 @@
 package tinydb.planner;
 
+import static tinydb.consts.Types.DOUBLE;
+import static tinydb.consts.Types.FLOAT;
+import static tinydb.consts.Types.INTEGER;
+import static tinydb.consts.Types.LONG;
+import static tinydb.consts.Types.STRING;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -7,8 +13,14 @@ import java.util.NoSuchElementException;
 
 import tinydb.server.DBManager;
 import tinydb.util.BadSyntaxException;
+import tinydb.util.NotExistsException;
 import tinydb.exec.*;
 import tinydb.exec.consts.Constant;
+import tinydb.exec.consts.IntConstant;
+import tinydb.exec.consts.LongConstant;
+import tinydb.exec.expr.Comparison;
+import tinydb.exec.expr.Condition;
+import tinydb.exec.expr.ConstantExpression;
 import tinydb.parse.*;
 import tinydb.plan.Plan;
 import tinydb.plan.ProductPlan;
@@ -37,11 +49,28 @@ public class Planner implements PlannerBase {
 		List<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
 		
 		for (String tblname : data.tables()) {
+			// Check if table name is valid
+			if (!DBManager.metadataManager().getTableNames().contains(tblname))
+				throw new NotExistsException("Table: " + tblname + " not exists!");
+
+			Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
+			correctDataTypes(schema, data.cond());
 			TablePlan tp = new TablePlan(tblname);
 			plans.add(tp);
 
 			if (data.isAll())
 				fields.addAll(tp.schema().fields());
+		}
+		
+		// Check if fields are valid
+		for (String fldname : fields) {
+			boolean isExist= false;
+			for (Plan p : plans) {
+				if (p.schema().hasField(fldname))
+					isExist = true;
+			}
+			if (!isExist)
+				throw new NotExistsException("Field (" + fldname + ") not exists!");
 		}
 
 		// Step 2: Create the product of all table plans
@@ -114,12 +143,16 @@ public class Planner implements PlannerBase {
 	}
 
 	public int executeModify(ModifyData data) {
+		Schema schema = DBManager.metadataManager().getTableInfo(data.tableName()).schema();
+		correctDataTypes(schema, data.cond());
+		
 		Plan p = new TablePlan(data.tableName());
 		p = new SelectPlan(p, data.cond());
 		UpdateExec ue = (UpdateExec) p.exec();
 		int count = 0;
 		while (ue.next()) {
 			Constant val = data.newValue().evaluate(ue);
+			correctDataType(p.schema(), val, data.targetField());
 			ue.setVal(data.targetField(), val);
 			count++;
 		}
@@ -143,19 +176,43 @@ public class Planner implements PlannerBase {
 			throw new BadSyntaxException("NOT NULL field(" + schema.getNotNull() + ") cannot be null");
 
 		for (String fldname : fields) {
+			int fldtype = schema.getField(fldname).type();
 			Constant val;
 			try {
 				val = vals.next();
 			} catch (NoSuchElementException e) {
 				throw new BadSyntaxException("Too few values to insert");
 			}
-
+			
 			if (schema.isNotNull(fldname) == 1 && val == null)
 				throw new BadSyntaxException("NOT NULL field(" + fldname + ") cannot be null");
 			else if (schema.isPk(fldname) == 1 && val == null)
 				throw new BadSyntaxException("PRIMARY KEY(" + fldname + ") cannot be null");
 
-			ue.setVal(fldname, val);
+			switch (fldtype) {
+			case INTEGER:
+				try {
+					ue.setInt(fldname, (int) val.value());
+				} catch (ClassCastException e) {
+					ue.setInt(fldname, ((Double) val.value()).intValue());
+					val = new IntConstant(((Double) val.value()).intValue());
+				}
+				break;
+			case LONG:
+				try {
+					ue.setLong(fldname, (long) val.value());
+				} catch (ClassCastException e) {
+					ue.setLong(fldname, ((Double) val.value()).longValue());
+					val = new LongConstant(((Double) val.value()).longValue());
+				}
+				break;
+			case FLOAT:
+			case DOUBLE:
+			case STRING:
+				ue.setVal(fldname, val);
+				break;
+			}
+
 		}
 		ue.close();
 		return 1;
@@ -176,5 +233,41 @@ public class Planner implements PlannerBase {
 	public int executeCreateIndex(CreateIndexData data) {
 		DBManager.metadataManager().createIndex(data.indexName(), data.tableName(), data.fieldName());
 		return 0;
+	}
+	
+	private void correctDataTypes(Schema schema, Condition cond) {
+		for (Comparison term : cond.terms()) {
+			if (term.isLhsFieldName() && !term.isRhsFieldName()) {
+				String fldname = term.getLhsFieldName();
+				Constant val = term.getFieldValue(fldname);
+				int type = schema.type(fldname);
+				if (val.type() != type) {
+					switch (type) {
+					case INTEGER:
+						val = new IntConstant(((Double) val.value()).intValue());
+						term.modifyRhsValue(new ConstantExpression(val));
+						break;
+					case LONG:
+						val = new LongConstant(((Double) val.value()).longValue());
+						term.modifyRhsValue(new ConstantExpression(val));
+						break;
+					}
+
+				}
+			}
+		}
+	}
+	
+	private Constant correctDataType(Schema schema, Constant val, String fldname) {
+		int type = schema.type(fldname);
+		if (val.type() != type) {
+			switch (type) {
+				case INTEGER:
+					return new IntConstant(((Double) val.value()).intValue());
+				case LONG:
+					return new LongConstant(((Double) val.value()).longValue());
+			}
+		}
+		return val;
 	}
 }
