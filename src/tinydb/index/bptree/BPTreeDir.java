@@ -1,30 +1,30 @@
-package tinydb.index.bplus;
+package tinydb.index.bptree;
 
 import tinydb.exec.consts.Constant;
 import tinydb.file.Block;
 import tinydb.record.Table;
 
-public class BplusDir {
+public class BPTreeDir {
 	private Table tb;
 	private String filename;
-	private BplusPage contents;
+	private BPTreePage contents;
 
-	BplusDir(Block blk, Table tb) {
+	BPTreeDir(Block blk, Table tb) {
 		this.tb = tb;
 		filename = blk.fileName();
-		contents = new BplusPage(blk, tb);
+		contents = new BPTreePage(blk, tb);
 	}
 
 	public void close() {
 		contents.close();
 	}
-	
-	//search the block which is search key in
+
+	// search the block which is search key in
 	public int search(Constant searchkey) {
 		Block childblk = findChildBlock(searchkey);
 		while (contents.getFlag() > 0) {
 			contents.close();
-			contents = new BplusPage(childblk, tb);
+			contents = new BPTreePage(childblk, tb);
 			childblk = findChildBlock(searchkey);
 		}
 		return childblk.number();
@@ -40,12 +40,12 @@ public class BplusDir {
 		contents.setFlag(level + 1);
 	}
 
-	//Insert new directory entry
+	// Insert new directory entry
 	public DirEntry insert(DirEntry e) {
 		if (contents.getFlag() == 0)
 			return insertEntry(e);
 		Block childblk = findChildBlock(e.dataVal());
-		BplusDir child = new BplusDir(childblk, tb);
+		BPTreeDir child = new BPTreeDir(childblk, tb);
 		DirEntry myentry = child.insert(e);
 		child.close();
 		return (myentry != null) ? insertEntry(myentry) : null;
@@ -63,8 +63,8 @@ public class BplusDir {
 		Block newblk = contents.split(splitpos, level);
 		return new DirEntry(splitval, newblk.number());
 	}
-	
-	//get the next block
+
+	// get the next block
 	private Block findChildBlock(Constant searchkey) {
 		int slot = contents.findSlotBefore(searchkey);
 		if (contents.getDataVal(slot + 1).equals(searchkey))

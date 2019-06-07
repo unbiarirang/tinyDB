@@ -1,40 +1,35 @@
-package tinydb.index.bplus;
+package tinydb.index.bptree;
 
 import tinydb.exec.consts.Constant;
 import tinydb.file.Block;
 import tinydb.record.*;
 
-public class BplusLeaf {
+public class BPTreeLeaf {
 	private Table tb;
 	private Constant searchkey;
-	public BplusPage contents;
+	public BPTreePage contents;
 	private int currentslot;
 
-	public BplusLeaf(Block blk, Table tb, Constant searchkey) {
+	public BPTreeLeaf(Block blk, Table tb, Constant searchkey) {
 		this.tb = tb;
 		this.searchkey = searchkey;
-		contents = new BplusPage(blk, tb);
+		contents = new BPTreePage(blk, tb);
 		currentslot = contents.findSlotBefore(searchkey);
 	}
 
-	public void close() {
-		contents.close();
-	}
-	
-	//move to the n slot
+	// move to the n slot
 	public void setCurrentSlot(int n) {
 		currentslot = n;
 	}
-	
-	//search the next record which has specified value
+
+	// search the next record which has specified value
 	public boolean next() {
 		currentslot++;
 		if (currentslot >= contents.getNumRecs())
 			return tryOverflow();
 		else if (contents.getDataVal(currentslot).equals(searchkey)) {
 			return true;
-		}
-		else
+		} else
 			return tryOverflow();
 	}
 
@@ -64,9 +59,9 @@ public class BplusLeaf {
 		contents.insertLeaf(currentslot, searchkey, datarid);
 		if (!contents.isFull())
 			return null;
-		//when block has spare space
-		
-		//block is full
+		// when block has spare space
+
+		// block is full
 		Constant firstkey = contents.getDataVal(0);
 		Constant lastkey = contents.getDataVal(contents.getNumRecs() - 1);
 		if (lastkey.equals(firstkey)) {
@@ -77,12 +72,12 @@ public class BplusLeaf {
 			int splitpos = contents.getNumRecs() / 2;
 			Constant splitkey = contents.getDataVal(splitpos);
 			if (splitkey.equals(firstkey)) {
-				//search next key
+				// search next key
 				while (contents.getDataVal(splitpos).equals(splitkey))
 					splitpos++;
 				splitkey = contents.getDataVal(splitpos);
 			} else {
-				//search first entry having that key
+				// search first entry having that key
 				while (contents.getDataVal(splitpos - 1).equals(splitkey))
 					splitpos--;
 			}
@@ -98,8 +93,12 @@ public class BplusLeaf {
 			return false;
 		contents.close();
 		Block nextblk = new Block(tb.fileName(), flag);
-		contents = new BplusPage(nextblk, tb);
+		contents = new BPTreePage(nextblk, tb);
 		currentslot = 0;
 		return true;
+	}
+
+	public void close() {
+		contents.close();
 	}
 }

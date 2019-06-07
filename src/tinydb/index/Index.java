@@ -4,7 +4,7 @@ import tinydb.exec.consts.Constant;
 import tinydb.record.RID;
 
 public interface Index {
-	public void moveToHead(Constant searchkey);
+	public void moveToHead(Constant searchkey, String relation, boolean isOr) ;
 
 	public boolean next();
 

@@ -97,6 +97,8 @@ public class Comparison {
 		if (lhsval == null) lhsval = lhs.evaluate(e);
 		if (rhsval == null) rhsval = rhs.evaluate(e);
 		
+		if (lhsval.isNull() || rhsval.isNull()) return false;
+		
 		switch (relation) {
 		case ">":
 			return lhsval.compareTo(rhsval) > 0;
@@ -112,6 +114,10 @@ public class Comparison {
 
 		// case of "="
 		return lhsval.equals(rhsval);
+	}
+	
+	public void modifyRhsValue(Expression rhs) {
+		this.rhs = rhs;
 	}
 	
 	public String getLhsTableName() {
@@ -136,5 +142,13 @@ public class Comparison {
 	
 	public String getRhsFieldName() {
 		return rhs.getFieldName();
+	}
+	
+	public String getRelation() {
+		return relation;
+	}
+	
+	public Constant getRhsValue() {
+		return rhs.getConst();
 	}
 }

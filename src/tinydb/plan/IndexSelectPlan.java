@@ -11,11 +11,15 @@ public class IndexSelectPlan implements Plan {
 	private TablePlan p;
 	private IndexInfo ii;
 	private Constant val;
+	private String relation;
+	private boolean isOr;
 
-	public IndexSelectPlan(TablePlan p, IndexInfo ii, Constant val) {
+	public IndexSelectPlan(TablePlan p, IndexInfo ii, Constant val, String relation, boolean isOr) {
 		this.p = p;
 		this.ii = ii;
 		this.val = val;
+		this.relation = relation;
+		this.isOr = isOr;
 	}
 
 	// Plan methods //
@@ -23,7 +27,7 @@ public class IndexSelectPlan implements Plan {
 		// throws an exception if p is not a tableplan
 		TableExec te = (TableExec) p.exec();
 		Index idx = ii.open();
-		return new IndexSelectExec(idx, val, te);
+		return new IndexSelectExec(idx, val, te, relation, isOr);
 	}
 	
 	// Index traversal cost plus the number of matching data records

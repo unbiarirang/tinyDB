@@ -178,29 +178,29 @@ public class Record {
 			p.write(blk);
 	}
 
-	// Print all attributes of a record.
-	public void print() {
-		HashMap<String, Integer> fldtypes = tb.fldtypes();
-		Iterator<String> it = fldnames.iterator();
-
-		while (it.hasNext()) {
-			String fldname = it.next();
-
-			if (isNull(fldname)) // null
-				System.out.print("null\t");
-			else if (fldtypes.get(fldname).equals(Types.INTEGER))
-				System.out.print(getInt(fldname) + "\t");
-			else if (fldtypes.get(fldname).equals(Types.LONG))
-				System.out.print(getLong(fldname) + "\t");
-			else if (fldtypes.get(fldname).equals(Types.FLOAT))
-				System.out.print(getFloat(fldname) + "\t");
-			else if (fldtypes.get(fldname).equals(Types.DOUBLE))
-				System.out.print(getDouble(fldname) + "\t");
-			else
-				System.out.print(getString(fldname) + "\t");
-		}
-		System.out.println();
-	}
+//	// Print all attributes of a record.
+//	public void print() {
+//		HashMap<String, Integer> fldtypes = tb.fldtypes();
+//		Iterator<String> it = fldnames.iterator();
+//
+//		while (it.hasNext()) {
+//			String fldname = it.next();
+//
+//			if (isNull(fldname)) // null
+//				System.out.print("null\t");
+//			else if (fldtypes.get(fldname).equals(Types.INTEGER))
+//				System.out.print(getInt(fldname) + "\t");
+//			else if (fldtypes.get(fldname).equals(Types.LONG))
+//				System.out.print(getLong(fldname) + "\t");
+//			else if (fldtypes.get(fldname).equals(Types.FLOAT))
+//				System.out.print(getFloat(fldname) + "\t");
+//			else if (fldtypes.get(fldname).equals(Types.DOUBLE))
+//				System.out.print(getDouble(fldname) + "\t");
+//			else
+//				System.out.print(getString(fldname) + "\t");
+//		}
+//		System.out.println();
+//	}
 
 	public void moveToFirst() {
 		currentid = 0;

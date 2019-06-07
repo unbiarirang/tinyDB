@@ -181,67 +181,6 @@ public class RecordManager {
 		Page p = new Page();
 		p.append(filename);
 	}
-
-	// Scan and print all records
-	public void scanAll() {
-		RID prevRid = currentRid(); // save the previous RID
-		ArrayList<String> fldnames = tb.fldnames();
-		Iterator<String> it = fldnames.iterator();
-
-		while (it.hasNext())
-			System.out.print(it.next() + "\t");
-
-		close();
-		moveToHead();
-		while (next()) {
-			rc.print();
-		}
-		moveToRid(prevRid);
-	}
-
-	// Scan all records and print records that specifies the condition
-	// (fldname=vlaue)
-	public void scan(String fldname, Object value) {
-		RID prevRid = currentRid(); // save the previous RID
-		Schema sch = tb.schema();
-		close();
-		moveToHead();
-		
-		ArrayList<String> fldnames = tb.fldnames();
-		Iterator<String> it = fldnames.iterator();
-		while (it.hasNext())
-			System.out.print(it.next() + "\t");
-		System.out.println();
-
-		if (sch.type(fldname) == INTEGER) {
-			while (next()) {
-				if (rc.getInt(fldname) == ((Integer) value).intValue())
-					rc.print();
-			}
-		} else if (sch.type(fldname) == LONG) {
-			while (next()) {
-				if (rc.getLong(fldname) == ((Long) value).longValue())
-					rc.print();
-			}
-		} else if (sch.type(fldname) == FLOAT) {
-			while (next()) {
-				if (rc.getFloat(fldname) == ((Float) value).floatValue())
-					rc.print();
-			}
-		} else if (sch.type(fldname) == DOUBLE) {
-			while (next()) {
-				if (rc.getDouble(fldname) == ((Double) value).doubleValue())
-					rc.print();
-			}
-		} else {
-			while (next()) {
-				if (rc.getString(fldname) == ((String) value).toString())
-					rc.print();
-			}
-		}
-		
-		moveToRid(prevRid);
-	}
 	
 	public HashMap<Object, Integer> scanCount(String fldname, int gap) {
 		RID prevRid = currentRid(); // save the previous RID

@@ -64,7 +64,7 @@ class TablePlanner {
 			if (val != null) {
 				IndexInfo ii = indexes.get(fldname);
 				//cond.remove(fldname);
-				return new IndexSelectPlan(plan, ii, val);
+				return new IndexSelectPlan(plan, ii, val, cond.getRelation(fldname), cond.isOr());
 			}
 		}
 		return null;

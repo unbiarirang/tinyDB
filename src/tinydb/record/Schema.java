@@ -152,9 +152,11 @@ public class Schema {
 	}
 
 	// Information about a field
-	class Field {
+	public class Field {
 		int type, length;
 		boolean notNull, isPk;
+		
+		public int type() { return type; }
 		
 		public Field(int type) {
 			this.type = type;

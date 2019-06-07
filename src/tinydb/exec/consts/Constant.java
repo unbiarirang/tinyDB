@@ -6,4 +6,6 @@ public interface Constant extends Comparable<Constant> {
 	public boolean equals(Object obj);
 	public int compareTo(Constant c);
 	public String toString();
+	public int type();
+	public boolean isNull();
 }

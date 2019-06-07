@@ -11,17 +11,25 @@ public class IndexSelectExec implements Exec {
 	private Index idx;
 	private Constant val;  // index search key
 	private TableExec te;
+	private String relation;
+	private boolean isOr;
 
-	public IndexSelectExec(Index idx, Constant val, TableExec te) {
+	public IndexSelectExec(Index idx, Constant val, TableExec te, String relation, boolean isOr) {
 		this.idx = idx;
 		this.val = val;
 		this.te = te;
+		this.relation = relation;
+		this.isOr = isOr;
 		moveToHead();
+	}
+	
+	public void setSearchKey(Constant val) {
+		this.val = val;
 	}
 	
 	// Exec methods //
 	public void moveToHead() {
-		idx.moveToHead(val);
+		idx.moveToHead(val, relation, isOr);
 	}
 
 	public boolean next() {

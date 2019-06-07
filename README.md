@@ -10,7 +10,13 @@ Tiny database implemented in Java.
 
 1. One database catalog and one user catalog for whole db system
 2. One table catalog and one field catalog for each database
-3. CREATE/USE/DROP database
-4. CREATE/DROP table
-5. CREATE/DROP user
-6. GRANT/REVOKE privilege
+3. Implement **SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, USE, GRANT, REVOKE, SHOW** SQL commands.
+
+#### Assignment3. Query Processing
+
+1. Parsing and Translation
+2. Optimization
+3. Evaluation
+
+#### Assignment4. Server and Client GUI
+

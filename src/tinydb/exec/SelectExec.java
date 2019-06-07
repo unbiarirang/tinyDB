@@ -23,7 +23,7 @@ public class SelectExec implements UpdateExec {
 
 	public boolean next() {
 		while (e.next()) {
-			if ((!cond.isOr && cond.isSatisfiedAnd(e)) || (cond.isOr && cond.isSatisfiedOr(e)))
+			if ((!cond.isOr() && cond.isSatisfiedAnd(e)) || (cond.isOr() && cond.isSatisfiedOr(e)))
 				return true;
 		}
 		return false;
