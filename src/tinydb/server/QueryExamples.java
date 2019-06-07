@@ -17,11 +17,11 @@ public class QueryExamples {
 			DBManager.initDB("testdb");
 			
 			int[] testcase = { 	  0,	// 0. SELECT
-								  1,	// 1. SELECT - avengers examples
+								  0,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
-								  0,	// 5. SHOW TABLE tblname
+								  1,	// 5. SHOW TABLE tblname
 								  0,	// 6. SHOW DATABASE dbname
 								  0,	// 7. SHOW DATABASES
 								  0,	// 8. DROP TABLE tblname
@@ -39,27 +39,27 @@ public class QueryExamples {
 								  0		// 20. Error tests
 							 };
 
-//			if (testcase[0] == 1) select1();
+			if (testcase[0] == 1) select1();
 			if (testcase[1] == 1) select2();
-//			if (testcase[2] == 1) createDatabase();
-//			if (testcase[3] == 1) useDatabase();
-//			if (testcase[4] == 1) dropDatabase();
-//			if (testcase[5] == 1) showTable();
-//			if (testcase[6] == 1) showDatabase();
-//			if (testcase[7] == 1) showDatabases();
-//			if (testcase[8] == 1) dropTable();
-//			if (testcase[9] == 1) createIndex();
-//			if (testcase[10] == 1) indexSelect();
-//			if (testcase[11] == 1) indexJoin();
-//			if (testcase[12] == 1) selectWithTblname();
-//			if (testcase[13] == 1) naturalJoin();
-//			if (testcase[14] == 1) multipleJoin();
-//			if (testcase[15] == 1) createUser();
-//			if (testcase[16] == 1) dropUser();
-//			if (testcase[17] == 1) grantPrivilege();
-//			if (testcase[18] == 1) revokePrivilege();
-//			if (testcase[19] == 1) delete();
-//			if (testcase[20] == 1) errorTests();
+			if (testcase[2] == 1) createDatabase();
+			if (testcase[3] == 1) useDatabase();
+			if (testcase[4] == 1) dropDatabase();
+			if (testcase[5] == 1) showTable();
+			if (testcase[6] == 1) showDatabase();
+			if (testcase[7] == 1) showDatabases();
+			if (testcase[8] == 1) dropTable();
+			if (testcase[9] == 1) createIndex();
+			if (testcase[10] == 1) indexSelect();
+			if (testcase[11] == 1) indexJoin();
+			if (testcase[12] == 1) selectWithTblname();
+			if (testcase[13] == 1) naturalJoin();
+			if (testcase[14] == 1) multipleJoin();
+			if (testcase[15] == 1) createUser();
+			if (testcase[16] == 1) dropUser();
+			if (testcase[17] == 1) grantPrivilege();
+			if (testcase[18] == 1) revokePrivilege();
+			if (testcase[19] == 1) delete();
+			if (testcase[20] == 1) errorTests();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -92,7 +92,6 @@ public class QueryExamples {
 	private static void select2() throws Exception {
 		String qry1_1 = "drop table avengers";
 		String qry1_0 = "drop table villain";
-		// Two different grammar to create primary key
 		String qry1_2 = "create table avengers" + 
 				"	(id			 int not null," + 
 				"	 name	     string(32) not null," +
@@ -128,13 +127,13 @@ public class QueryExamples {
 		DBManager.plannerOpt().executeUpdate(qry1_10);
 		DBManager.plannerOpt().executeUpdate(qry1_11);
 
-		String qry1_12 = "select * from avengers where name = 'Captain';";
+		String qry1_12 = "select * from avengers where id = 10;";
 		p = DBManager.plannerOpt().createQueryPlan(qry1_12);
 		execPlan(p);
 		
 		String qry1_13 = "select * from villain;";
 		p = DBManager.plannerOpt().createQueryPlan(qry1_13);
-		//execPlan(p);
+//		execPlan(p);
 		
 		String qry = "select avengers.name, villain.name, villain.power " +
 				 "from avengers join villain on avengers.power = villain.power " +
@@ -293,7 +292,7 @@ public class QueryExamples {
 		DBManager.plannerOpt().executeUpdate(qry8_12);
 
 		String qry8 = "select id1, a, b, c " + "from JOINTEST1 " + "join JOINTEST2 on id1 = id2 "
-				+ "join JOINTEST3 on id2 = id3 " + "where id1 = 1";
+				+ "join JOINTEST3 on id2 = id3 where id1 = 1";
 		p = DBManager.plannerOpt().createQueryPlan(qry8);
 		execPlan(p);
 	}
@@ -366,7 +365,6 @@ public class QueryExamples {
 		e = p.exec();
 		System.out.println(((ProjectExec) e).tables());
 		String test = ((ProjectExec) e).tables();
-		List<String> result = Arrays.asList(test.substring(1, test.length() - 1).split(","));
 		System.out.println(((ProjectExec) e).fields());
 
 		while (e.next()) {

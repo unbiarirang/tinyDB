@@ -76,4 +76,12 @@ public class Utils {
 
 		return newList;
 	}
+	
+	public static boolean isAllEmpty(ArrayList<String> list) {
+		for (String str : list) {
+			if (!str.contentEquals(""))
+				return false;
+		}
+		return true;
+	}
 }

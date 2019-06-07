@@ -92,18 +92,23 @@ public class Main {
 					// executeShow SQL
 			case "show":
 				ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
+				String contents = "show ";
+				for(int i = 0; i < names.size(); i++) {
+					contents = contents + names.get(i) + "\n";
+				}
+				output.write(contents.getBytes());
 				break;
 		}
-		if(!fstCmd.equals("login") && !fstCmd.equals("select"))
-			output.write("completed".getBytes());
+		if(!fstCmd.equals("login") && !fstCmd.equals("select") && !fstCmd.equals("show"))
+			output.write("completed ".getBytes());
 	}
 	private static void execPlan(Plan p) throws Exception {
 		Exec e;
-		String contents = "select";
+		String contents = "select ";
 		e = p.exec();
 		String tables = ((ProjectExec) e).tables();
 		String fields = ((ProjectExec) e).fields();
-		contents = contents + "\n" + tables + "\n" + fields + "\n";
+		contents = contents + tables + "\n" + fields + "\n";
 		
 		while (e.next()) {
 			String res = e.getAllVal();

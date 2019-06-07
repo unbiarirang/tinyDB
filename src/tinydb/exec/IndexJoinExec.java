@@ -71,9 +71,9 @@ public class IndexJoinExec implements Exec {
 		String res = "";
 		for (String fldname : fieldlist) {
 			if (te.hasField(fldname))
-				res += te.getValToString(fldname) + " ";
+				res += te.getValToString(fldname) + "\t";
 			else
-				res += e.getValToString(fldname) + " ";
+				res += e.getValToString(fldname) + "\t";
 		}
 		return res;
 	}
@@ -87,9 +87,11 @@ public class IndexJoinExec implements Exec {
 		    String tblname = it1.next();
 		    String fldname = it2.next();
 		    if (te.hasTable(tblname) && te.hasField(fldname))
-		    	res += te.getValToString(fldname) + " ";
+		    	res += te.getValToString(fldname) + "\t";
+		    else if (e.hasTable(tblname) && e.hasField(fldname))
+		    	res += e.getValToString(fldname) + "\t";
 		    else
-		    	res += e.getValToString(fldname) + " ";
+		    	res += getValToString(fldname) + "\t";
 		}
 		return res;
 	}

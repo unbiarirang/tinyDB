@@ -40,8 +40,8 @@ public class IndexManager {
 			if (rm.getString("tablename").equals(tblname)) {
 				String idxname = rm.getString("indexname");
 				String fldname = rm.getString("fieldname");
-				IndexInfo ii = new HashIndexInfo(idxname, tblname, fldname);
-//				IndexInfo ii = new BTreeIndexInfo(idxname, tblname, fldname);
+//				IndexInfo ii = new HashIndexInfo(idxname, tblname, fldname);
+				IndexInfo ii = new BTreeIndexInfo(idxname, tblname, fldname);
 				result.put(fldname, ii);
 			}
 		rm.close();

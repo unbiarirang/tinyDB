@@ -181,7 +181,8 @@ public class BplusPage {
 		String tblname = tb.tableName();
 		String after =tblname.substring(tblname.length() - 4);
 		//if leaf table
-		if(tblname.substring(tblname.length() - 4).equals("leaf")) {
+//		int test = (Integer) ((Long) val.value()).intValue();
+		if(val.value() instanceof Long ) {
 			if (type == INTEGER)
 				setInt(slot, fldname, (Integer) ((Long) val.value()).intValue());
 			else if (type == LONG)
@@ -205,8 +206,8 @@ public class BplusPage {
 
 	//make the spare space in specified slot
 	private void insert(int slot) {
-		for (int i = getNumRecs(); i > slot; i--)
-			copyRecord(i - 1, i);
+		for (int i = getNumRecs(); i >= slot; i--)
+			copyRecord(i, i + 1);
 		setNumRecs(getNumRecs() + 1);
 	}
 

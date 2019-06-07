@@ -58,7 +58,7 @@ public class TableExec implements UpdateExec {
 	public String getAllVal() {
 		String res = "";
 		for (String fldname : sch.fields())
-			res += getValToString(fldname) + " ";
+			res += getValToString(fldname) + '\t';
 		
 		return res;
 	}
@@ -66,7 +66,7 @@ public class TableExec implements UpdateExec {
 	public String getAllVal(ArrayList<String> fieldlist) {
 		String res = "";
 		for (String fldname : fieldlist)
-			res += getValToString(fldname) + " ";
+			res += getValToString(fldname) + "\t";
 		
 		return res;
 	}

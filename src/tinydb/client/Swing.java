@@ -18,6 +18,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import tinydb.util.*;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.BufferedReader;
@@ -33,6 +34,10 @@ public class Swing {
 	public static InputStream input;
 	public static OutputStream output;
 	public static int curpos;
+	public static long timecost = 0;
+	public static long current = 0;
+	public static long duration = 0;
+	
 	
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		Socket c_socket = new Socket("127.0.0.1", 8888);
@@ -154,6 +159,7 @@ public class Swing {
 		Inputpanel.add(Import);
 		Inputpanel.add(Run);
 		Inputpanel.add(CMDText);
+		
 		Import.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser(".");
@@ -190,6 +196,7 @@ public class Swing {
 
 		Run.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				timecost = 0;
 				String cmd = CMDText.getText();
 				byte[] recvbuffer =  new byte[1024];
 				int fst = 0;
@@ -200,77 +207,102 @@ public class Swing {
 						fst = i + 1;
 						try {
 							output.write(extract.getBytes());
+							current = System.currentTimeMillis();
 							input.read(recvbuffer);
-							System.out.println("here0!!!" + cmd);
-							ifSelect((new String(recvbuffer)));
+							timecost = timecost + System.currentTimeMillis() - current;
+//							System.out.println("here0!!!" + cmd);
+							ifDisplay((new String(recvbuffer)));
 //							System.out.println((new String(recvbuffer)));
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}	
 					}
 				}
+				System.out.println("timecost:" + timecost);
 			}
 		});
 	}
-	public static void ifSelect(String cmd) {
-		String test = cmd.substring(0, 6);
+	public static void ifDisplay(String cmd) {
+//		String ifSelect = cmd.substring(0, 6);
+//		String ifShow = cmd.substring(0,4);
+		String fstcmd = Utils.parseFirstCmd(cmd);
 		System.out.println("here1!!!" + cmd);
-		if (test.equals("select")) {
-			placeResultComponents(cmd.substring(7, cmd.length()));
+		if (fstcmd.equals("select")) {
+			placeResult(0, cmd.substring(7, cmd.length()));
+		}
+		else if (fstcmd.contentEquals("show")) {
+			placeResult(1, cmd.substring(5, cmd.length()));
+		}
+		else {
+			placeResult(2, cmd);
 		}
 	}
 
-	private static void placeResultComponents(String cmd) {
+	private static void placeResult(int type, String cmd) {
 		
 		ResultPanel.removeAll();
 		Vector columnNames = new Vector();
+		Vector rowData = new Vector();
+		Vector Data = new Vector();
 		String tableinfo = null;
 		String fields = null;
 		int fst = 0;
 		int cnt = 0;
-		for(int i = 0; i < cmd.length(); i++) {
-			if(cmd.charAt(i) == '\n') {
-				cnt++;
-				if(cnt == 1) {
-					tableinfo = cmd.substring(fst, i);
+		if(type == 0) {
+			for(int i = 0; i < cmd.length(); i++) {
+				if(cmd.charAt(i) == '\n') {
+					cnt++;
+					if(cnt == 1) {
+						tableinfo = cmd.substring(fst, i);
+						fst = i + 1;
+					}
+					else if(cnt == 2) {
+						fields = cmd.substring(fst, i);
+						fst = i + 1;
+						if(!tableinfo.equals("null")) {
+							List<String> tmptable = Arrays.asList(tableinfo.substring(1, tableinfo.length() - 1).split(","));
+							List<String> tmpfields = Arrays.asList(fields.substring(1, fields.length() - 1).split(","));
+							for(int j = 0; j < tmptable.size(); j++) {
+								columnNames.add(tmptable.get(j) + "." + tmpfields.get(j));
+							}
+						}
+						else {
+							List<String> tmpfields = Arrays.asList(fields.substring(1, fields.length() - 1).split(","));
+							for(int j = 0; j < tmpfields.size(); j++) {
+								columnNames.add(tmpfields.get(j));
+							}
+						}
+						cmd = cmd.substring(fst, cmd.length() - 1);
+						break;
+					}
+				}
+			}
+			fst = 0;
+
+			for(int i = 0; i < cmd.length(); i++) {
+				if(cmd.charAt(i) == '\t') {
+					String test = cmd.substring(fst, i);
+					Data.add(cmd.substring(fst, i));
 					fst = i + 1;
 				}
-				else if(cnt == 2) {
-					fields = cmd.substring(fst, i);
-					fst = i + 1;
-					if(!tableinfo.equals("null")) {
-						List<String> tmptable = Arrays.asList(tableinfo.substring(1, tableinfo.length() - 1).split(","));
-						List<String> tmpfields = Arrays.asList(fields.substring(1, fields.length() - 1).split(","));
-						for(int j = 0; j < tmptable.size(); j++) {
-							columnNames.add(tmptable.get(j) + "." + tmpfields.get(j));
-						}
-					}
-					else {
-						List<String> tmpfields = Arrays.asList(fields.substring(1, fields.length() - 1).split(","));
-						for(int j = 0; j < tmpfields.size(); j++) {
-							columnNames.add(tmpfields.get(j));
-						}
-					}
-					cmd = cmd.substring(fst, cmd.length() - 1);
-					break;
+				else if(cmd.charAt(i) == '\n') {
+					rowData.add(Data.clone());
+					cnt = 0;
+					fst = fst + 1;
+					Data.clear();
 				}
 			}
 		}
-		fst = 0;
-		Vector rowData = new Vector();
-		Vector Data = new Vector();
-		for(int i = 0; i < cmd.length(); i++) {
-			if(cmd.charAt(i) == ' ') {
-				String test = cmd.substring(fst, i);
-				Data.add(cmd.substring(fst, i));
-				fst = i + 1;
+		else if(type == 1) {
+			for(int i = 0; i < cmd.length(); i++) {
+				if(cmd.charAt(i) == '\n') {
+					columnNames.add(cmd.substring(fst, i));
+					fst = i + 1;
+				}
 			}
-			else if(cmd.charAt(i) == '\n') {
-				rowData.add(Data.clone());
-				cnt = 0;
-				fst = fst + 1;
-				Data.clear();
-			}
+		}
+		else {
+			columnNames.add("updated");
 		}
 				
 		JTable table = new JTable(rowData, columnNames);
@@ -294,8 +326,9 @@ public class Swing {
 
 		table.getTableHeader().setFont(new Font(null, Font.BOLD, 14)); 
 		table.getTableHeader().setForeground(Color.RED); 
-		table.getTableHeader().setResizingAllowed(false); 
+		table.getTableHeader().setResizingAllowed(true);
 		table.getTableHeader().setReorderingAllowed(false); 
+		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
 		

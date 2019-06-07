@@ -4,6 +4,7 @@ import java.util.*;
 
 import tinydb.exec.consts.Constant;
 import tinydb.util.Tuple;
+import tinydb.util.Utils;
 
 // Plan for project operation
 public class ProjectExec implements Exec {
@@ -27,7 +28,7 @@ public class ProjectExec implements Exec {
 	}
 	
 	public String tables() {
-		if (tablelist != null)
+		if (tablelist != null && !Utils.isAllEmpty(tablelist))
 			return tablelist.subList(0, resfieldlist.size()).toString();
 		
 		return null;
@@ -63,13 +64,20 @@ public class ProjectExec implements Exec {
 	}
 	
 	public String getAllVal() throws Exception {
-		if (tablelist != null)
-			return e.getAllVal(tablelist, resfieldlist);
-
 		try {
-			return e.getAllVal(resfieldlist);
+			if (tablelist != null && !Utils.isAllEmpty(tablelist))
+				return e.getAllVal(tablelist, resfieldlist);
+			try {
+				return e.getAllVal(resfieldlist);
+			} catch (Exception exx) {
+				return e.getAllVal();
+			}
 		} catch (Exception ex) {
-			return e.getAllVal();
+			try {
+				return e.getAllVal(resfieldlist);
+			} catch (Exception exx) {
+				return e.getAllVal();
+			}
 		}
 	}
 	
