@@ -28,6 +28,12 @@ public class Condition {
 	public void join(Condition cond) {
 		terms.addAll(cond.terms);
 	}
+	
+	public void remove(String fldname) {
+		for (Comparison t : terms)
+			if (t.getLhsFieldName().contentEquals(fldname))
+				terms.remove(t);
+	}
 
 	// Evaluate 'and' combination of all comparisons
 	public boolean isSatisfiedAnd(Exec e) {
