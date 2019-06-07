@@ -1,8 +1,8 @@
 package tinydb.server;
 
 import java.util.ArrayList;
-import java.io.IOException;
-import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
 
 import tinydb.exec.Exec;
 import tinydb.exec.ProjectExec;
@@ -17,16 +17,17 @@ public class QueryExamples {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		plannerOpt = DBManager.plannerOpt();
-		
+
 		try {
+			// analogous to the driver
 			DBManager.initDB("testdb");
-			
+
 			int[] testcase = { 	  1,	// 0. SELECT
 								  1,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
-								  0,	// 5. SHOW TABLE tblname
+								  1,	// 5. SHOW TABLE tblname
 								  0,	// 6. SHOW DATABASE dbname
 								  0,	// 7. SHOW DATABASES
 								  0,	// 8. DROP TABLE tblname
@@ -97,17 +98,17 @@ public class QueryExamples {
 	private static void select2() throws Exception {
 		String qry1_1 = "drop table avengers";
 		String qry1_0 = "drop table villain";
-		String qry1_2 = "create table avengers" + 
-				"	(id			 int not null," + 
+		String qry1_2 = "create table avengers" +
+				"	(id			 int not null," +
 				"	 name	     string(32) not null," +
-				"	 power	     int not null," + 
+				"	 power	     int not null," +
 				"	 weight      float," + "    height      double," +
 				"	 primary key (ID)" + "	);";
-		String qry1 = "create table villain" + 
-				"	(id			int not null, " + 
-				"	 name			string(32) not null, " + 
-				"	 power	int not null," + 
-				"	 primary key (ID)" + 
+		String qry1 = "create table villain" +
+				"	(id			int not null, " +
+				"	 name			string(32) not null, " +
+				"	 power	int not null," +
+				"	 primary key (ID)" +
 				"	);";
 		String qry1_3 = "insert into avengers values (10, 'Captain', 50, 78.1, 1.85);";
 		String qry1_4 = "insert into avengers values (3, 'Thor', 90, 92.1, 1.89);";
@@ -135,15 +136,15 @@ public class QueryExamples {
 		String qry1_12 = "select * from avengers where name = 'Captain';";
 		p = plannerOpt.createQueryPlan(qry1_12);
 		execPlan(p);
-		
+
 		String qry1_13 = "select * from villain;";
 		p = plannerOpt.createQueryPlan(qry1_13);
 		execPlan(p);
-		
+
 		String qry = "select avengers.name, villain.name, villain.power " +
 				 "from avengers join villain on avengers.power = villain.power " +
 				 "where villain.power > 40;";
-	
+
 		p = plannerOpt.createQueryPlan(qry);
 		execPlan(p);
 	}
@@ -358,7 +359,7 @@ public class QueryExamples {
 		String qryTooManyPk2 = "create table TEST2(a int, b int, primary key (a, b))";
 		String tableNotExists = "insert into NOTTEST values (1);";
 		String fieldNotExists = "insert into TEST(a, b, c, d, e) values (1, 1, 1, 1, 1);";
-		
+
 		plannerOpt.executeUpdate(qry14_1);
 		plannerOpt.executeUpdate(qry14_4);
 		plannerOpt.executeUpdate(qry14_2);
@@ -380,8 +381,10 @@ public class QueryExamples {
 	}
 
 	private static void execPlan(Plan p) throws Exception {
+		Exec e;
 		e = p.exec();
 		System.out.println(((ProjectExec) e).tables());
+		String test = ((ProjectExec) e).tables();
 		System.out.println(((ProjectExec) e).fields());
 
 		while (e.next()) {

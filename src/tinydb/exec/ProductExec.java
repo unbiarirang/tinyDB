@@ -68,9 +68,9 @@ public class ProductExec implements Exec {
 		    String tblname = it1.next();
 		    String fldname = it2.next();
 		    if (e1.hasTable(tblname) && e1.hasField(fldname))
-		    	res += e1.getValToString(fldname) + " ";
+		    	res += e1.getValToString(fldname) + "\t";
 		    else
-		    	res += e2.getValToString(fldname) + " ";
+		    	res += e2.getValToString(fldname) + "\t";
 		}
 		return res;
 	}

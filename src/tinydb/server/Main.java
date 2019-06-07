@@ -8,24 +8,25 @@ import java.net.Socket;
 
 import tinydb.plan.Plan;
 import tinydb.exec.Exec;
+import tinydb.exec.ProjectExec;
 import tinydb.util.Tuple;
 import tinydb.util.Utils;
 
 public class Main {
 	public static OutputStream output;
 	public static InputStream input;
+	public static DBManager dm;
 
 	public static void main(String[] args) throws Exception {
 		// Create or recover database "test"
 		// SQL: use database test
-
+		
+		dm = new DBManager();
 		ServerSocket serverSocket = new ServerSocket(8888);
 		System.out.println("Server is running now");
 		Socket c_socket = serverSocket.accept();
 		System.out.println("User connected");
-
-		DBManager.initDB("testdb");
-
+		
 		OutputStream output_data = c_socket.getOutputStream();
 		InputStream input_data = c_socket.getInputStream();
 		output = output_data;
@@ -47,49 +48,76 @@ public class Main {
 
 		fstCmd = fstCmd.toLowerCase();
 		switch (fstCmd) {
-		
-		// createQueryPlan SQL
-		case "select":
-			p = DBManager.plannerOpt().createQueryPlan(cmd);
-//			e = p.exec();
-//			while(e.next()) {
-//		
-//			}
-			break;
-			
-		// executeUpdate SQL
-		case "create":
-		case "update":
-		case "insert":
-		case "drop":
-		case "use":
-			DBManager.plannerOpt().executeUpdate(cmd);
-			break;
-
-		// executeShow SQL
-		case "show":
-			ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
-			break;
-
-		// Just for login, cmd is not a SQL
-		// cmd = "login id pw"
-		case "login":
-			Tuple<String, String> id_pw = Utils.getIDandPW(cmd);
-			String id = id_pw.x;
-			String pw = id_pw.y;
-			System.out.println("id:" + id);
-			System.out.println("pw:" + pw);
-			if (DBManager.verifyUser(id, pw)) {
-				System.out.println("ok");
-				output.write("OK".getBytes());
-			} else {
-				output.write("NO".getBytes());
-				System.out.println("NO".getBytes());
-			}
-			break;
+			case "login":
+//				String db = Utils.getDB(cmd);
+//				Tuple<String, String> id_pw = Utils.getIDandPW(cmd);
+				String[] info = Utils.getInfo(cmd);
+				String db = info[0];
+				String id = info[1];
+				String pw = info[2];
+				dm.initDB(db);
+				System.out.println("id:" + id);
+				System.out.println("pw:" + pw);
+				if(id.equals("admin") && pw.equals("admin")) {
+					output.write("OK".getBytes());
+					break;
+				}
+				if(DBManager.verifyUser(id, pw) == true) {
+					System.out.println("ok");
+					output.write("OK".getBytes());
+				}
+				else {
+					output.write("NO".getBytes());
+					System.out.println("NO".getBytes());
+				}
+				break;
+				// Just for login, cmd is not a SQL
+				// cmd = "login id pw"
+				
+			// executeUpdate SQL
+			case "create":
+			case "update":
+			case "insert":
+			case "delete":
+			case "drop":
+			case "use":
+				DBManager.plannerOpt().executeUpdate(cmd);
+				break;
+				
+			case "select":
+				p = DBManager.plannerOpt().createQueryPlan(cmd);
+				execPlan(p);
+				break;
+					// executeShow SQL
+			case "show":
+				ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
+				String contents = "show ";
+				for(int i = 0; i < names.size(); i++) {
+					contents = contents + names.get(i) + "\n";
+				}
+				output.write(contents.getBytes());
+				break;
 		}
-		output.write("completed".getBytes());
+		if(!fstCmd.equals("login") && !fstCmd.equals("select") && !fstCmd.equals("show"))
+			output.write("completed ".getBytes());
 	}
+	private static void execPlan(Plan p) throws Exception {
+		Exec e;
+		String contents = "select ";
+		e = p.exec();
+		String tables = ((ProjectExec) e).tables();
+		String fields = ((ProjectExec) e).fields();
+		contents = contents + tables + "\n" + fields + "\n";
+		
+		while (e.next()) {
+			String res = e.getAllVal();
+			contents = contents + res + "\n";
+			System.out.println(">>>>>\t" + res);
+		}
+		output.write(contents.getBytes());
+		e.close();
+	}
+}
 
 //		String dbname1 = "test1";
 //		DBManager.initDB(dbname1);
@@ -228,4 +256,4 @@ public class Main {
 //		rm.deleteAll("a", (Integer)1);
 //		rm.scanAll();
 //	}
-}
+// }

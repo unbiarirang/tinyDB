@@ -76,6 +76,7 @@ public class BplusIndex implements Index {
 	// get the data
 	public boolean next() {
 		while (currentslot <= leaf.contents.getNumRecs()) {
+			Object test = leaf.contents.getDataVal(currentslot);
 			if (leaf.contents.getDataVal(currentslot).compareTo(searchkey) == 0) {
 				System.out.println("searchkey: " + searchkey.value() + " was found");
 				leaf.setCurrentSlot(currentslot);
