@@ -1,8 +1,6 @@
 package tinydb.server;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import tinydb.exec.Exec;
 import tinydb.exec.ProjectExec;
@@ -15,7 +13,7 @@ public class QueryExamples {
 	public static Exec e;
 	public static PlannerBase plannerOpt;
 
-	public static void main(String[] args) throws UnknownHostException, IOException {
+	public static void main(String[] args) {
 		plannerOpt = DBManager.plannerOpt();
 
 		try {
@@ -23,24 +21,24 @@ public class QueryExamples {
 			DBManager.initDB("testdb");
 
 			int[] testcase = { 	  1,	// 0. SELECT
-								  1,	// 1. SELECT - avengers examples
+								  0,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
-								  1,	// 5. SHOW TABLE tblname
+								  0,	// 5. SHOW TABLE tblname
 								  0,	// 6. SHOW DATABASE dbname
 								  0,	// 7. SHOW DATABASES
 								  0,	// 8. DROP TABLE tblname
 								  0,	// 9. CREATE INDEX
-								  1,	// 10. Index SELECT
-								  1,	// 11. Index JOIN
-								  1,	// 12. JOIN & SELECT with tbname.attrname
-								  1,	// 13. Natural JOIN
-								  1,	// 14. multiple JOIN
-								  1,	// 15. DROP USER
-								  1,	// 16. CREATE USER
-								  1,	// 17. GRANT PRIVILEGE
-								  1,	// 18. REVOKE PRIVIEGE
+								  0,	// 10. Index SELECT
+								  0,	// 11. Index JOIN
+								  0,	// 12. JOIN & SELECT with tbname.attrname
+								  0,	// 13. Natural JOIN
+								  0,	// 14. multiple JOIN
+								  0,	// 15. DROP USER
+								  0,	// 16. CREATE USER
+								  0,	// 17. GRANT PRIVILEGE
+								  0,	// 18. REVOKE PRIVIEGE
 								  0,	// 19. DELETE
 								  0		// 20. Error tests
 							 };
@@ -89,7 +87,7 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry0_6);
 		plannerOpt.executeUpdate(qry0_7);
 
-		String qry0_10 = "select a_a from test where a_a > 2 and b >= 1";
+		String qry0_10 = "select * from test where a_a < 3";
 
 		p = plannerOpt.createQueryPlan(qry0_10);
 		execPlan(p);
@@ -221,7 +219,7 @@ public class QueryExamples {
 		String qry13_1 = "drop table JOINTEST1";
 		String qry13_2 = "drop table JOINTEST2";
 		String qry13_3 = "create table JOINTEST1(id1 int, a string(5), primary key(id1))";
-		String qry13_4 = "create table JOINTEST2(id2 int, b string(5), primary key(id2))";
+		String qry13_4 = "create table JOINTEST2(id2 int, b string(5))";
 		String qry13_5 = "insert into JOINTEST1(id1, a) values (1, 'aaaaa')";
 		String qry13_6 = "insert into JOINTEST1(id1, a) values (2, 'bbbbb')";
 		String qry13_7 = "insert into JOINTEST2(id2, b) values (1, 'ccccc')";
@@ -236,7 +234,7 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry13_7);
 		plannerOpt.executeUpdate(qry13_4);
 		plannerOpt.executeUpdate(qry13_8);
-		String qry13_10 = "select id1, a, b from JOINTEST1 join JOINTEST2 on id1 = id2";
+		String qry13_10 = "select id1, a, b from JOINTEST2 join JOINTEST1 on id1 = id2";
 		p = plannerOpt.createQueryPlan(qry13_10);
 		execPlan(p);
 	}
@@ -381,10 +379,8 @@ public class QueryExamples {
 	}
 
 	private static void execPlan(Plan p) throws Exception {
-		Exec e;
 		e = p.exec();
 		System.out.println(((ProjectExec) e).tables());
-		String test = ((ProjectExec) e).tables();
 		System.out.println(((ProjectExec) e).fields());
 
 		while (e.next()) {
