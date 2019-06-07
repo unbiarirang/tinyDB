@@ -14,14 +14,14 @@ public class QueryExamples {
 	public static PlannerBase plannerOpt;
 
 	public static void main(String[] args) {
-		plannerOpt = DBManager.plannerOpt();
+		plannerOpt = DBManager.planner();
 
 		try {
 			// analogous to the driver
 			DBManager.initDB("testdb");
 
-			int[] testcase = { 	  1,	// 0. SELECT
-								  0,	// 1. SELECT - avengers examples
+			int[] testcase = { 	  0,	// 0. SELECT
+								  1,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
@@ -87,9 +87,10 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry0_6);
 		plannerOpt.executeUpdate(qry0_7);
 
-		String qry0_10 = "select * from test where a_a < 3";
-
+		String qry0_10 = "select * from test where a_a = 3";
+		
 		p = plannerOpt.createQueryPlan(qry0_10);
+		System.out.println(">>>>>>>>>>");
 		execPlan(p);
 		System.out.println("<<<<<<<<<<");
 	}
@@ -126,7 +127,15 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry1_4);
 		plannerOpt.executeUpdate(qry1_5);
 		plannerOpt.executeUpdate(qry1_6);
-		plannerOpt.executeUpdate(qry1_7);
+		for (int i = 11; i < 500; i++) {
+			System.out.println(">>>>>" + i);
+			qry1_7 = "insert into avengers values (" + i +", 'Groot', 10, 182.1, 2.76);";
+			plannerOpt.executeUpdate(qry1_7);
+		}
+//		qry1_7 = "insert into avengers values (" + 345 +", 'Groot', 10, 182.1, 2.76);";
+//		plannerOpt.executeUpdate(qry1_7);
+//		qry1_7 = "insert into avengers values (" + 346 +", 'Groot', 10, 182.1, 2.76);";
+//		plannerOpt.executeUpdate(qry1_7);
 		plannerOpt.executeUpdate(qry1_8);
 		plannerOpt.executeUpdate(qry1_9);
 		plannerOpt.executeUpdate(qry1_10);
@@ -136,14 +145,14 @@ public class QueryExamples {
 		p = plannerOpt.createQueryPlan(qry1_12);
 		execPlan(p);
 
-		String qry1_13 = "select * from villain;";
+		String qry1_13 = "select * from avengers;";
 		p = plannerOpt.createQueryPlan(qry1_13);
 		execPlan(p);
 
 		String qry = "select avengers.name, villain.name, villain.power " +
 				 "from avengers join villain on avengers.power = villain.power " +
 				 "where villain.power > 40;";
-
+//		String qry = "select * from avengers where id = 499;";
 		p = plannerOpt.createQueryPlan(qry);
 		execPlan(p);
 	}

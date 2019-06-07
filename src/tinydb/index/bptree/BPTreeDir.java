@@ -52,7 +52,7 @@ public class BPTreeDir {
 	}
 
 	private DirEntry insertEntry(DirEntry e) {
-		int newslot = 1 + contents.findSlotBefore(e.dataVal());
+		int newslot = 1 + contents.findSlotBefore(e.dataVal());// +1?
 		contents.insertDir(newslot, e.dataVal(), e.blockNumber());
 		if (!contents.isFull())
 			return null;

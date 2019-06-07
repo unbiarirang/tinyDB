@@ -1,4 +1,4 @@
-	package tinydb.server;
+package tinydb.server;
 
 import java.io.InputStream;
 import java.io.OutputStream;

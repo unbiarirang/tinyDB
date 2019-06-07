@@ -212,7 +212,7 @@ public class Swing {
 							fst = i + 1;
 							try {
 								output.write(extract.getBytes());
-								byte[] recvbuffer =  new byte[1024];
+								byte[] recvbuffer =  new byte[10000];
 								current = System.currentTimeMillis();
 								input.read(recvbuffer);
 								timecost = timecost + System.currentTimeMillis() - current;

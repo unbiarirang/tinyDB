@@ -33,6 +33,7 @@ public class BPTreePage {
 	//the place where will data be inserted;
 	public int findSlotBefore(Constant searchkey) {
 		int slot = 0;
+		int test = getNumRecs();
 		while (slot <= getNumRecs() && getDataVal(slot).compareTo(searchkey) < 0)
 			slot++;
 		return slot - 1;
@@ -43,13 +44,16 @@ public class BPTreePage {
 	}
 
 	public boolean isFull() {
-		return slotpos(getNumRecs() + 1) >= BLOCK_SIZE;
+		int test = slotpos(getNumRecs() + 1);
+		int testq = slotpos(getNumRecs());
+		return slotpos(getNumRecs() + 2) >= BLOCK_SIZE;
 	}
 
 	//when the block is full,split the original block to two block
 	public Block split(int splitpos, int flag) {
 		Block newblk = appendNew();
 		BPTreePage newpage = new BPTreePage(newblk, tb);
+		currentblk = newblk;
 		transferRecs(splitpos, newpage);
 		newpage.setFlag(flag);
 		newpage.close();
@@ -103,7 +107,6 @@ public class BPTreePage {
 		for (int i = slot + 1; i <= getNumRecs(); i++)
 			copyRecord(i, i - 1);
 		setNumRecs(getNumRecs() - 1);
-		contents.write(currentblk);
 	}
 
 	//number of record
@@ -208,6 +211,7 @@ public class BPTreePage {
 	private void insert(int slot) {
 		for (int i = getNumRecs(); i >= slot; i--)
 			copyRecord(i, i + 1);
+		int test = getNumRecs();
 		setNumRecs(getNumRecs() + 1);
 	}
 
@@ -228,6 +232,10 @@ public class BPTreePage {
 			delete(slot);
 			destslot++;
 		}
+
+		int test = 0;
+
+		contents.write(currentblk);
 	}
 
 	private int fldpos(int slot, String fldname) {
