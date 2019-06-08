@@ -17,6 +17,7 @@ public class DBManager {
 	private static MetadataManager mm;
 	private static AuthManager am;
 
+
 	public static void initDB(String dbname) {
 		// init file manager
 		fm = new FileManager(dbname); // set working directory

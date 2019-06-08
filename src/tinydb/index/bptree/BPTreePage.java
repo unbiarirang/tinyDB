@@ -227,11 +227,7 @@ public class BPTreePage {
 			setVal(to, fldname, getVal(from, fldname));
 	}
 
-<<<<<<< HEAD
-	//transfer the data to dest Block
-=======
 	// transfer the data to dest Block
->>>>>>> 728a87419862b63b010ce2564f281cc77247fd88
 	private void transferRecs(int slot, BPTreePage dest) {
 		int destslot = 0;
 		while (slot < getNumRecs()) {

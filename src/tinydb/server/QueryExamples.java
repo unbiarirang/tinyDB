@@ -21,7 +21,7 @@ public class QueryExamples {
 			DBManager.initDB("testdb");
 
 			int[] testcase = { 	  0,	// 0. SELECT
-								  1,	// 1. SELECT - avengers examples
+								  0,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
@@ -36,9 +36,9 @@ public class QueryExamples {
 								  0,	// 13. Natural JOIN
 								  0,	// 14. multiple JOIN
 								  0,	// 15. DROP USER
-								  0,	// 16. CREATE USER
-								  0,	// 17. GRANT PRIVILEGE
-								  0,	// 18. REVOKE PRIVIEGE
+								  1,	// 16. CREATE USER
+								  1,	// 17. GRANT PRIVILEGE
+								  1,	// 18. REVOKE PRIVIEGE
 								  0,	// 19. DELETE
 								  0		// 20. Error tests
 							 };
@@ -139,7 +139,7 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry1_4);
 		plannerOpt.executeUpdate(qry1_5);
 		plannerOpt.executeUpdate(qry1_6);
-		for (int i = 11; i < 500; i++) {
+		for (int i = 11; i < 1500; i++) {
 			System.out.println(">>>>>" + i);
 			qry1_7 = "insert into avengers values (" + i +", 'Groot', 10, 182.1, 2.76);";
 			plannerOpt.executeUpdate(qry1_7);
@@ -366,9 +366,9 @@ public class QueryExamples {
 		String qry = "REVOKE select ON TABLE test FROM user1";
 		plannerOpt.executeUpdate(qry);
 
-//		select1(); // raise permission error
+		select1(); // raise permission error
 		// login as admin
-		DBManager.verifyUser(null, null);
+//		DBManager.verifyUser(null, null);
 	}
 
 	private static void delete() throws Exception {

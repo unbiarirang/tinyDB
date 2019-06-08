@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import tinydb.plan.Plan;
+import tinydb.planner.PlannerBase;
 import tinydb.exec.Exec;
 import tinydb.exec.ProjectExec;
 import tinydb.util.Tuple;
@@ -20,13 +21,13 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		// Create or recover database "test"
 		// SQL: use database test
-		
+
 		dm = new DBManager();
 		ServerSocket serverSocket = new ServerSocket(8888);
 		System.out.println("Server is running now");
 		Socket c_socket = serverSocket.accept();
 		System.out.println("User connected");
-		
+
 		OutputStream output_data = c_socket.getOutputStream();
 		InputStream input_data = c_socket.getInputStream();
 		output = output_data;
@@ -38,8 +39,7 @@ public class Main {
 				input.read(recvbuffer);
 //				System.out.println(new String(recvbuffer));
 				exec(new String(recvbuffer));
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				output.write(e.toString().getBytes());
 			}
 		}
@@ -47,69 +47,72 @@ public class Main {
 
 	public static void exec(String cmd) throws Exception {
 		Plan p;
+		PlannerBase planner = DBManager.planner();
 		Exec e;
 		String fstCmd = Utils.parseFirstCmd(cmd);
 //		System.out.println(cmd);
 
 		fstCmd = fstCmd.toLowerCase();
 		switch (fstCmd) {
-			case "login":
+		case "login":
 //				String db = Utils.getDB(cmd);
 //				Tuple<String, String> id_pw = Utils.getIDandPW(cmd);
-				String[] info = Utils.getInfo(cmd);
-				String db = info[0];
-				String id = info[1];
-				String pw = info[2];
-				dm.initDB(db);
+			String[] info = Utils.getInfo(cmd);
+			String db = info[0];
+			String id = info[1];
+			String pw = info[2];
+			dm.initDB(db);
 //				System.out.println("id:" + id);
 //				System.out.println("pw:" + pw);
-				if(id.equals("admin") && pw.equals("admin")) {
-					output.write("OK".getBytes());
-					break;
-				}
-				if(DBManager.verifyUser(id, pw) == true) {
+			if (id.equals("admin") && pw.equals("admin")) {
+				output.write("OK".getBytes());
+				break;
+			}
+			if (DBManager.verifyUser(id, pw) == true) {
 //					System.out.println("ok");
-					output.write("OK".getBytes());
-				}
-				else {
-					output.write("NO".getBytes());
+				output.write("OK".getBytes());
+			} else {
+				output.write("NO".getBytes());
 //					System.out.println("NO".getBytes());
-				}
-				break;
-				// Just for login, cmd is not a SQL
-				// cmd = "login id pw"
-				
-			// executeUpdate SQL
-			case "create":
-			case "update":
-			case "insert":
-			case "delete":
-			case "drop":
-			case "use":
-				DBManager.plannerOpt().executeUpdate(cmd);
-				break;
-				
-			case "select":
-				p = DBManager.plannerOpt().createQueryPlan(cmd);
-				execPlan(p);
-				break;
-					// executeShow SQL
-			case "show":
-				ArrayList<String> names = DBManager.plannerOpt().executeShow(cmd);
-				String contents = "show ";
-				int size = names.size();
-				for(int i = 0; i < size; i++) {
-					contents = contents + names.get(i) + "\n";
-				}
-				output.write(contents.getBytes());
-				break;
-			default :
-				output.write("BadSyntaxException".getBytes());
-				return;
+			}
+			break;
+		// Just for login, cmd is not a SQL
+		// cmd = "login id pw"
+
+		// executeUpdate SQL
+		case "create":
+		case "update":
+		case "insert":
+		case "delete":
+		case "drop":
+		case "grant":
+		case "revoke":
+		case "use":
+			planner.executeUpdate(cmd);
+			break;
+
+		case "select":
+			p = planner.createQueryPlan(cmd);
+			execPlan(p);
+			break;
+		// executeShow SQL
+		case "show":
+			ArrayList<String> names = planner.executeShow(cmd);
+			String contents = "show ";
+			int size = names.size();
+			for (int i = 0; i < size; i++) {
+				contents = contents + names.get(i) + "\n";
+			}
+			output.write(contents.getBytes());
+			break;
+		default:
+			output.write("BadSyntaxException".getBytes());
+			return;
 		}
-		if(!fstCmd.equals("login") && !fstCmd.equals("select") && !fstCmd.equals("show")) 
+		if (!fstCmd.equals("login") && !fstCmd.equals("select") && !fstCmd.equals("show"))
 			output.write("updated ".getBytes());
 	}
+
 	private static void execPlan(Plan p) throws Exception {
 		Exec e;
 		String contents = "select ";
@@ -117,7 +120,7 @@ public class Main {
 		String tables = ((ProjectExec) e).tables();
 		String fields = ((ProjectExec) e).fields();
 		contents = contents + tables + "\n" + fields + "\n";
-		
+
 		while (e.next()) {
 			String res = e.getAllVal();
 			contents = contents + res + "\n";

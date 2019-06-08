@@ -178,7 +178,8 @@ public class FileManager {
 			}
 			br.close();
 			bw.close();
-
+			
+			file.delete();
 			if (tempfile.renameTo(file))
 				System.out.println(dbname + " was removed from the dbcat");
 			else
@@ -270,7 +271,8 @@ public class FileManager {
 			}
 			br.close();
 			bw.close();
-
+			file.delete();
+			
 			if (tempfile.renameTo(file))
 				System.out.println(dbname + " was removed from the usercat");
 			else
@@ -337,7 +339,8 @@ public class FileManager {
 			}
 			br.close();
 			bw.close();
-
+			file.delete();
+			
 			if (tempfile.renameTo(file))
 				System.out.println(line + " was removed from the usercat");
 			else

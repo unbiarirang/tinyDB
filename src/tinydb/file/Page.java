@@ -8,7 +8,7 @@ import tinydb.server.DBManager;
 // The contents of a disk block in memory. (in memory Block)
 public class Page {
 	// The number of bytes in a block. 
-	public static final int BLOCK_SIZE = 4096;
+	public static final int BLOCK_SIZE = 2048;
 
 	public static final int INT_SIZE = Integer.SIZE / Byte.SIZE;
 	public static final int LONG_SIZE = Long.SIZE / Byte.SIZE;
