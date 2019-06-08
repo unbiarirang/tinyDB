@@ -9,6 +9,7 @@ import tinydb.auth.AuthManager.PasswordInfo;
 import tinydb.file.FileManager;
 import tinydb.metadata.MetadataManager;
 import tinydb.metadata.TableManager;
+import tinydb.util.NoPermisionException;
 import tinydb.util.PasswordUtils;
 
 // (static class) TinyDB database manager
@@ -66,9 +67,15 @@ public class DBManager {
 	}
 
 	public static int dropTable(DropTableData obj) {
-		fm.deleteTable(mm.dbname(), obj.tblName()); // delete tblname.tbl file
+		String tblname = obj.tblName();
+		// Check user permission
+		if (!DBManager.authManager().isAdmin() && 
+				(!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "insert")))
+			throw new NoPermisionException("No permission to insert on table " + tblname);
+
+		fm.deleteTable(mm.dbname(), tblname); // delete tblname.tbl file
 		mm.deleteTable(obj.tblName()); // delete metadata from tblcat, fldcat, idxcat
-		fm.deleteUserInfos(mm.dbname(), obj.tblName()); // delete metadata from usercat
+		fm.deleteUserInfos(mm.dbname(), tblname); // delete metadata from usercat
 		return 0;
 	}
 	
@@ -148,5 +155,14 @@ public class DBManager {
 	
 	public static PlannerBase plannerOpt() {
 		return new OptimizedPlanner();
+	}
+	
+	private static boolean hasPrivilege(String tblname, String privilege) {
+		String temp = DBManager.authManager().username() + " " + DBManager.metadataManager().dbname() + " " + tblname
+				+ " ";
+		if (!DBManager.authManager().checkUserPrivilege(temp + "*")
+				&& !DBManager.authManager().checkUserPrivilege(temp + privilege))
+			return false;
+		return true;
 	}
 }

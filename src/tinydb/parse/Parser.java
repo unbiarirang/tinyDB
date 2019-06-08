@@ -324,12 +324,20 @@ public class Parser {
 				privilege = "update";
 			}
 			else if (lex.matchKeyword("insert")) {
-				lex.eatKeyword("inert");
+				lex.eatKeyword("insert");
 				privilege = "inert";
 			}
 			else if (lex.matchKeyword("delete")) {
 				lex.eatKeyword("delete");
 				privilege = "delete";
+			}
+			else if (lex.matchKeyword("drop")) {
+				lex.eatKeyword("drop");
+				privilege = "drop";
+			}
+			else if (lex.matchKeyword("create")) {
+				lex.eatKeyword("create");
+				privilege = "create";
 			}
 		}
 		lex.eatKeyword("on");

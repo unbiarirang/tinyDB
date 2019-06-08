@@ -13,9 +13,11 @@ import java.util.NoSuchElementException;
 
 import tinydb.server.DBManager;
 import tinydb.util.BadSyntaxException;
+import tinydb.util.NoPermisionException;
 import tinydb.util.NotExistsException;
 import tinydb.exec.*;
 import tinydb.exec.consts.Constant;
+import tinydb.exec.consts.FloatConstant;
 import tinydb.exec.consts.IntConstant;
 import tinydb.exec.consts.LongConstant;
 import tinydb.exec.expr.Comparison;
@@ -36,7 +38,7 @@ public class Planner implements PlannerBase {
 	public Plan createQueryPlan(String qry) {
 		Parser parser = new Parser(qry);
 		QueryData data;
-		if (qry.contains("join"))
+		if (qry.contains("join") || qry.contains("JOIN"))
 			data = parser.queryJoin();
 		else
 			data = parser.query();
@@ -47,11 +49,15 @@ public class Planner implements PlannerBase {
 		// Step 1: Create a plan for each mentioned table or view
 		List<Plan> plans = new ArrayList<Plan>();
 		List<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
-		
+
 		for (String tblname : data.tables()) {
 			// Check if table name is valid
 			if (!DBManager.metadataManager().getTableNames().contains(tblname))
 				throw new NotExistsException("Table: " + tblname + " not exists!");
+
+			// Check user permission
+			if (!DBManager.authManager().isAdmin() && !hasPrivilege(tblname, "select"))
+				throw new NoPermisionException("No permission to select on table " + tblname);
 
 			Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
 			correctDataTypes(schema, data.cond());
@@ -61,10 +67,10 @@ public class Planner implements PlannerBase {
 			if (data.isAll())
 				fields.addAll(tp.schema().fields());
 		}
-		
+
 		// Check if fields are valid
 		for (String fldname : fields) {
-			boolean isExist= false;
+			boolean isExist = false;
 			for (Plan p : plans) {
 				if (p.schema().hasField(fldname))
 					isExist = true;
@@ -120,17 +126,21 @@ public class Planner implements PlannerBase {
 	public ArrayList<String> executeShow(String cmd) {
 		Parser parser = new Parser(cmd);
 		Object obj = parser.showCmd();
-		if (obj instanceof ShowTableData)			// SHOW TABLE
+		if (obj instanceof ShowTableData) // SHOW TABLE
 			return DBManager.showTableFields((ShowTableData) obj);
-		else if (obj instanceof ShowDatabaseData)	// SHOW DATABASE
+		else if (obj instanceof ShowDatabaseData) // SHOW DATABASE
 			return DBManager.showDatabaseTables((ShowDatabaseData) obj);
-		else										// SHOW DATABASES
+		else // SHOW DATABASES
 			return DBManager.showDatabases();
 	}
 
-
 	public int executeDelete(DeleteData data) {
-		Plan p = new TablePlan(data.tableName());
+		String tblname = data.tableName();
+		// Check user permission
+		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "delete")))
+			throw new NoPermisionException("No permission to delete on table " + tblname);
+
+		Plan p = new TablePlan(tblname);
 		p = new SelectPlan(p, data.cond());
 		UpdateExec ue = (UpdateExec) p.exec();
 		int count = 0;
@@ -143,9 +153,14 @@ public class Planner implements PlannerBase {
 	}
 
 	public int executeModify(ModifyData data) {
-		Schema schema = DBManager.metadataManager().getTableInfo(data.tableName()).schema();
+		String tblname = data.tableName();
+		// Check user permission
+		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "update")))
+			throw new NoPermisionException("No permission to update on table " + tblname);
+
+		Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
 		correctDataTypes(schema, data.cond());
-		
+
 		Plan p = new TablePlan(data.tableName());
 		p = new SelectPlan(p, data.cond());
 		UpdateExec ue = (UpdateExec) p.exec();
@@ -161,8 +176,13 @@ public class Planner implements PlannerBase {
 	}
 
 	public int executeInsert(InsertData data) {
-		Plan p = new TablePlan(data.tableName());
-		Schema schema = DBManager.metadataManager().getTableInfo(data.tableName()).schema();
+		String tblname = data.tableName();
+		// Check user permission
+		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "insert")))
+			throw new NoPermisionException("No permission to insert on table " + tblname);
+
+		Plan p = new TablePlan(tblname);
+		Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
 		UpdateExec ue = (UpdateExec) p.exec();
 		ue.insert();
 
@@ -183,7 +203,7 @@ public class Planner implements PlannerBase {
 			} catch (NoSuchElementException e) {
 				throw new BadSyntaxException("Too few values to insert");
 			}
-			
+
 			if (schema.isNotNull(fldname) == 1 && val == null)
 				throw new BadSyntaxException("NOT NULL field(" + fldname + ") cannot be null");
 			else if (schema.isPk(fldname) == 1 && val == null)
@@ -207,6 +227,13 @@ public class Planner implements PlannerBase {
 				}
 				break;
 			case FLOAT:
+				try {
+					ue.setFloat(fldname, (float) val.value());
+				} catch (ClassCastException e) {
+					ue.setFloat(fldname, ((Double) val.value()).floatValue());
+					val = new FloatConstant(((Double) val.value()).floatValue());
+				}
+				break;
 			case DOUBLE:
 			case STRING:
 				ue.setVal(fldname, val);
@@ -220,8 +247,12 @@ public class Planner implements PlannerBase {
 
 	public int executeCreateTable(CreateTableData data) throws Exception {
 		String tblname = data.tableName();
-		DBManager.tableManager().createTable(tblname, data.newSchema());
-		Table tb = DBManager.metadataManager().getTableInfo(tblname);
+		// Check user permission
+		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "create")))
+			throw new NoPermisionException("No permission to create on table " + tblname);
+
+		Table tb = DBManager.tableManager().createTable(tblname, data.newSchema());
+//		Table tb = DBManager.metadataManager().getTableInfo(tblname);
 		if (tb.pk() != null) {
 			String qry = "create index " + tblname + "pk on " // index name is {tblname}pk
 					+ tblname + " (" + tb.pk() + ")";
@@ -231,13 +262,28 @@ public class Planner implements PlannerBase {
 	}
 
 	public int executeCreateIndex(CreateIndexData data) {
-		DBManager.metadataManager().createIndex(data.indexName(), data.tableName(), data.fieldName());
+		String tblname = data.tableName();
+		// Check user permission
+		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "create")))
+			throw new NoPermisionException("No permission to create index on table " + tblname);
+
+		DBManager.metadataManager().createIndex(data.indexName(), tblname, data.fieldName());
 		return 0;
 	}
-	
+
+	private boolean hasPrivilege(String tblname, String privilege) {
+		String temp = DBManager.authManager().username() + " " + DBManager.metadataManager().dbname() + " " + tblname
+				+ " ";
+		if (!DBManager.authManager().checkUserPrivilege(temp + "*")
+				&& !DBManager.authManager().checkUserPrivilege(temp + privilege))
+			return false;
+		return true;
+	}
+
 	private void correctDataTypes(Schema schema, Condition cond) {
 		for (Comparison term : cond.terms()) {
-			if (term.isLhsFieldName() && !term.isRhsFieldName()) {
+			if (term.isLhsFieldName() && !term.isRhsFieldName()
+					&& schema.hasField(term.getLhsFieldName())) {
 				String fldname = term.getLhsFieldName();
 				Constant val = term.getFieldValue(fldname);
 				int type = schema.type(fldname);
@@ -251,21 +297,27 @@ public class Planner implements PlannerBase {
 						val = new LongConstant(((Double) val.value()).longValue());
 						term.modifyRhsValue(new ConstantExpression(val));
 						break;
+					case FLOAT:
+						val = new FloatConstant(((Double) val.value()).floatValue());
+						term.modifyRhsValue(new ConstantExpression(val));
+						break;
 					}
-
 				}
 			}
 		}
+
 	}
-	
+
 	private Constant correctDataType(Schema schema, Constant val, String fldname) {
 		int type = schema.type(fldname);
 		if (val.type() != type) {
 			switch (type) {
-				case INTEGER:
-					return new IntConstant(((Double) val.value()).intValue());
-				case LONG:
-					return new LongConstant(((Double) val.value()).longValue());
+			case INTEGER:
+				return new IntConstant(((Double) val.value()).intValue());
+			case LONG:
+				return new LongConstant(((Double) val.value()).longValue());
+			case FLOAT:
+				return new FloatConstant(((Double) val.value()).floatValue());
 			}
 		}
 		return val;
