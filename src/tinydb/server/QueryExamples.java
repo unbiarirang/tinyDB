@@ -32,16 +32,16 @@ public class QueryExamples {
 								  0,	// 9. CREATE INDEX
 								  0,	// 10. Index SELECT
 								  0,	// 11. Index JOIN
-								  0,	// 12. JOIN & SELECT with tbname.attrname
-								  0,	// 13. Natural JOIN
-								  0,	// 14. multiple JOIN
-								  1,	// 15. DROP USER
-								  1,	// 16. CREATE USER
-								  1,	// 17. GRANT PRIVILEGE
-								  1,	// 18. REVOKE PRIVIEGE
+								  1,	// 12. JOIN & SELECT with tbname.attrname
+								  1,	// 13. Natural JOIN
+								  1,	// 14. multiple JOIN
+								  0,	// 15. DROP USER
+								  0,	// 16. CREATE USER
+								  0,	// 17. GRANT PRIVILEGE
+								  0,	// 18. REVOKE PRIVIEGE
 								  0,	// 19. DELETE
 								  0,	// 20. Error tests
-								  1		// 6.8 test
+								  0		// 6.8 test
 							 };
 
 			if (testcase[0] == 1) select1();
@@ -233,16 +233,7 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry1_4);
 		plannerOpt.executeUpdate(qry1_5);
 		plannerOpt.executeUpdate(qry1_6);
-//		plannerOpt.executeUpdate(qry1_16);
-		for (int i = 11; i < 1500; i++) {
-			System.out.println(">>>>>" + i);
-			qry1_7 = "insert into avengers values (" + i +", 'Groot', 10, 182.1, 2.76);";
-			plannerOpt.executeUpdate(qry1_7);
-		}
-//		qry1_7 = "insert into avengers values (" + 345 +", 'Groot', 10, 182.1, 2.76);";
-//		plannerOpt.executeUpdate(qry1_7);
-//		qry1_7 = "insert into avengers values (" + 346 +", 'Groot', 10, 182.1, 2.76);";
-//		plannerOpt.executeUpdate(qry1_7);
+		plannerOpt.executeUpdate(qry1_7);
 		plannerOpt.executeUpdate(qry1_8);
 		plannerOpt.executeUpdate(qry1_9);
 		plannerOpt.executeUpdate(qry1_10);
@@ -265,7 +256,6 @@ public class QueryExamples {
 		String qry = "select avengers.name, villain.name, villain.power " +
 				 "from avengers join villain on avengers.power = villain.power " +
 				 "where villain.power > 40;";
-
 		System.out.println("expected: ('Captain', 'Thanos', 100) and ('Thor', 'Hella', 90)");
 		p = plannerOpt.createQueryPlan(qry);
 		execPlan(p);
@@ -429,8 +419,8 @@ public class QueryExamples {
 		plannerOpt.executeUpdate(qry8_11);
 		plannerOpt.executeUpdate(qry8_12);
 
-		String qry8 = "select id1, a, b, c " + "from JOINTEST1 " + "join JOINTEST2 on id1 = id2 "
-				+ "join JOINTEST3 on id2 = id3 where id1 = 1";
+		String qry8 = "select JOINTEST1.id1, JOINTEST1.a, JOINTEST2.b, JOINTEST3.c " + "from JOINTEST1 " + "join JOINTEST2 on id1 = id2 "
+				+ "join JOINTEST3 on id2 = id3";
 		p = plannerOpt.createQueryPlan(qry8);
 		execPlan(p);
 	}
@@ -457,24 +447,30 @@ public class QueryExamples {
 		String qry2 = "GRANT insert ON TABLE test TO user1";
 		String qry3 = "GRANT drop ON TABLE test TO user1";
 		String qry4 = "GRANT create ON TABLE test TO user1";
-		plannerOpt.executeUpdate(qry);
-		plannerOpt.executeUpdate(qry2);
-		plannerOpt.executeUpdate(qry3);
-		plannerOpt.executeUpdate(qry4);
+//		plannerOpt.executeUpdate(qry);
+//		plannerOpt.executeUpdate(qry2);
+//		plannerOpt.executeUpdate(qry3);
+//		plannerOpt.executeUpdate(qry4);
 
 		// login as user1
 		DBManager.verifyUser("user1", "password");
-		select1();
+		qry = "select * from test";
+		p = plannerOpt.createQueryPlan(qry);
+		execPlan(p);
 	}
 
 	private static void revokePrivilege() throws Exception {
 		String qry = "REVOKE select ON TABLE test FROM user1";
 		plannerOpt.executeUpdate(qry);
 
-		select1(); // raise permission error
+		// login as user1
+		DBManager.verifyUser("user1", "password");
+		// raise permission error
+		qry = "select * from test";
+		p = plannerOpt.createQueryPlan(qry);
+		execPlan(p);
 		// login as admin
 		DBManager.verifyUser(null, null);
-		select1();
 	}
 
 	private static void delete() throws Exception {
