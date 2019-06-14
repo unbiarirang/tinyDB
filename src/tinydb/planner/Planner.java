@@ -56,8 +56,8 @@ public class Planner implements PlannerBase {
 				throw new NotExistsException("Table: " + tblname + " not exists!");
 
 			// Check user permission
-			if (!DBManager.authManager().isAdmin() && !hasPrivilege(tblname, "select"))
-				throw new NoPermisionException("No permission to select on table " + tblname);
+//			if (!DBManager.authManager().isAdmin() && !hasPrivilege(tblname, "select"))
+//				throw new NoPermisionException("No permission to select on table " + tblname);
 
 			Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
 			correctDataTypes(schema, data.cond());
@@ -137,8 +137,8 @@ public class Planner implements PlannerBase {
 	public int executeDelete(DeleteData data) {
 		String tblname = data.tableName();
 		// Check user permission
-		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "delete")))
-			throw new NoPermisionException("No permission to delete on table " + tblname);
+//		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "delete")))
+//			throw new NoPermisionException("No permission to delete on table " + tblname);
 
 		Plan p = new TablePlan(tblname);
 		p = new SelectPlan(p, data.cond());
@@ -155,8 +155,8 @@ public class Planner implements PlannerBase {
 	public int executeModify(ModifyData data) {
 		String tblname = data.tableName();
 		// Check user permission
-		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "update")))
-			throw new NoPermisionException("No permission to update on table " + tblname);
+//		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "update")))
+//			throw new NoPermisionException("No permission to update on table " + tblname);
 
 		Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
 		correctDataTypes(schema, data.cond());
@@ -178,8 +178,8 @@ public class Planner implements PlannerBase {
 	public int executeInsert(InsertData data) {
 		String tblname = data.tableName();
 		// Check user permission
-		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "insert")))
-			throw new NoPermisionException("No permission to insert on table " + tblname);
+//		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "insert")))
+//			throw new NoPermisionException("No permission to insert on table " + tblname);
 
 		Plan p = new TablePlan(tblname);
 		Schema schema = DBManager.metadataManager().getTableInfo(tblname).schema();
@@ -248,8 +248,8 @@ public class Planner implements PlannerBase {
 	public int executeCreateTable(CreateTableData data) throws Exception {
 		String tblname = data.tableName();
 		// Check user permission
-		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "create")))
-			throw new NoPermisionException("No permission to create on table " + tblname);
+//		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "create")))
+//			throw new NoPermisionException("No permission to create on table " + tblname);
 
 		Table tb = DBManager.tableManager().createTable(tblname, data.newSchema());
 //		Table tb = DBManager.metadataManager().getTableInfo(tblname);
@@ -264,8 +264,8 @@ public class Planner implements PlannerBase {
 	public int executeCreateIndex(CreateIndexData data) {
 		String tblname = data.tableName();
 		// Check user permission
-		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "create")))
-			throw new NoPermisionException("No permission to create index on table " + tblname);
+//		if (!DBManager.authManager().isAdmin() && (!hasPrivilege(tblname, "*") || !hasPrivilege(tblname, "create")))
+//			throw new NoPermisionException("No permission to create index on table " + tblname);
 
 		DBManager.metadataManager().createIndex(data.indexName(), tblname, data.fieldName());
 		return 0;

@@ -208,7 +208,6 @@ public class Swing {
 				try {
 					for(int i = 0; i < cmd.length(); i++) {
 						if(cmd.charAt(i) == ';') {
-							sw = 1;
 							String extract = cmd.substring(fst, i);
 							fst = i + 1;
 							try {
@@ -226,8 +225,7 @@ public class Swing {
 							}	
 						}
 					}
-					if(sw == 0)
-						JOptionPane.showMessageDialog(null, "lacks of semicolon!", "Error", JOptionPane.ERROR_MESSAGE);
+				
 				} catch (Exception e3) {
 //					System.out.println(e3.getMessage());
 					JOptionPane.showMessageDialog(null, e3.getMessage().toString(), "Error", JOptionPane.ERROR_MESSAGE);

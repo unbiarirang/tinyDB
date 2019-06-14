@@ -21,7 +21,7 @@ public class QueryExamples {
 			DBManager.initDB("testdb");
 
 			int[] testcase = { 	  0,	// 0. SELECT
-								  0,	// 1. SELECT - avengers examples
+								  1,	// 1. SELECT - avengers examples
 								  0,	// 2. CREATE DATABASE dbname
 								  0,	// 3. USE DATABASE dbname
 								  0,	// 4. DROP DATABASE dbname
@@ -32,9 +32,9 @@ public class QueryExamples {
 								  0,	// 9. CREATE INDEX
 								  0,	// 10. Index SELECT
 								  0,	// 11. Index JOIN
-								  1,	// 12. JOIN & SELECT with tbname.attrname
-								  1,	// 13. Natural JOIN
-								  1,	// 14. multiple JOIN
+								  0,	// 12. JOIN & SELECT with tbname.attrname
+								  0,	// 13. Natural JOIN
+								  0,	// 14. multiple JOIN
 								  0,	// 15. DROP USER
 								  0,	// 16. CREATE USER
 								  0,	// 17. GRANT PRIVILEGE
@@ -224,51 +224,60 @@ public class QueryExamples {
 		String qry1_9 = "INSERT INTO villain VALUES (2, 'Red Skull', 40);";
 		String qry1_10 = "INSERT INTO villain VALUES (3, 'Hella', 90);";
 		String qry1_11 = "INSERT INTO villain VALUES (4, 'monster', 10);";
-		plannerOpt.executeUpdate(qry1_14);
+
+			
+//		plannerOpt.executeUpdate(qry1_14);
 		plannerOpt.executeUpdate(qry1_1);
-		plannerOpt.executeUpdate(qry1_0);
+//		plannerOpt.executeUpdate(qry1_0);
 		plannerOpt.executeUpdate(qry1_2);
-		plannerOpt.executeUpdate(qry1);
-		plannerOpt.executeUpdate(qry1_3);
-		plannerOpt.executeUpdate(qry1_4);
-		plannerOpt.executeUpdate(qry1_5);
-		plannerOpt.executeUpdate(qry1_6);
-		plannerOpt.executeUpdate(qry1_7);
-		plannerOpt.executeUpdate(qry1_8);
-		plannerOpt.executeUpdate(qry1_9);
-		plannerOpt.executeUpdate(qry1_10);
-		plannerOpt.executeUpdate(qry1_11);
+		long current = System.currentTimeMillis();
+		for(int i = 0; i < 5000; i++) {
+			qry1_3 = "insert into avengers values (" + i + ", 'Captain', 50, 78.1, 1.85);";
+			plannerOpt.executeUpdate(qry1_3);
+		}
+		long duration = System.currentTimeMillis() - current;
+		System.out.println(duration);
+//		plannerOpt.executeUpdate(qry1);
+//		plannerOpt.executeUpdate(qry1_3);
+//		plannerOpt.executeUpdate(qry1_4);
+//		plannerOpt.executeUpdate(qry1_5);
+//		plannerOpt.executeUpdate(qry1_6);
+//		plannerOpt.executeUpdate(qry1_7);
+//		plannerOpt.executeUpdate(qry1_8);
+//		plannerOpt.executeUpdate(qry1_9);
+//		plannerOpt.executeUpdate(qry1_10);
+//		plannerOpt.executeUpdate(qry1_11);
 		
-		String qry1_17 = "show table avengers;";
-		System.out.println("expected: [id, name, power, weight, height]");
-		System.out.println(plannerOpt.executeShow(qry1_17));
-
-		String qry1_12 = "select * from avengers;";
-		System.out.println("expected: * fields of 'Captain', 'Thor', 'IronMan', 'rocket'");
-		p = plannerOpt.createQueryPlan(qry1_12);
-		execPlan(p);
-
-		String qry1_13 = "select id, name from avengers where id = 4;";
-		System.out.println("expected: 4, 'rocket'");
-		p = plannerOpt.createQueryPlan(qry1_13);
-		execPlan(p);
-
-		String qry = "select avengers.name, villain.name, villain.power " +
-				 "from avengers join villain on avengers.power = villain.power " +
-				 "where villain.power > 40;";
-		System.out.println("expected: ('Captain', 'Thanos', 100) and ('Thor', 'Hella', 90)");
-		p = plannerOpt.createQueryPlan(qry);
-		execPlan(p);
-
-		System.out.println("expected: * fields of 'Captain', 'Thor', 'rocket'");
-		qry = "select * from avengers where id = 3 or name = 'Captain' or height < 1.0";
-		p = plannerOpt.createQueryPlan(qry);
-		execPlan(p);
-		
-		System.out.println("expected: * fields of 'Thor', 'IronMan'");
-		qry = "select * from avengers where id >= 1 and weight >= 80";
-		p = plannerOpt.createQueryPlan(qry);
-		execPlan(p);
+//		String qry1_17 = "show table avengers;";
+//		System.out.println("expected: [id, name, power, weight, height]");
+//		System.out.println(plannerOpt.executeShow(qry1_17));
+//
+//		String qry1_12 = "select * from avengers;";
+//		System.out.println("expected: * fields of 'Captain', 'Thor', 'IronMan', 'rocket'");
+//		p = plannerOpt.createQueryPlan(qry1_12);
+//		execPlan(p);
+//
+//		String qry1_13 = "select id, name from avengers where id = 4;";
+//		System.out.println("expected: 4, 'rocket'");
+//		p = plannerOpt.createQueryPlan(qry1_13);
+//		execPlan(p);
+//
+//		String qry = "select avengers.name, villain.name, villain.power " +
+//				 "from avengers join villain on avengers.power = villain.power " +
+//				 "where villain.power > 40;";
+//		System.out.println("expected: ('Captain', 'Thanos', 100) and ('Thor', 'Hella', 90)");
+//		p = plannerOpt.createQueryPlan(qry);
+//		execPlan(p);
+//
+//		System.out.println("expected: * fields of 'Captain', 'Thor', 'rocket'");
+//		qry = "select * from avengers where id = 3 or name = 'Captain' or height < 1.0";
+//		p = plannerOpt.createQueryPlan(qry);
+//		execPlan(p);
+//		
+//		System.out.println("expected: * fields of 'Thor', 'IronMan'");
+//		qry = "select * from avengers where id >= 1 and weight >= 80";
+//		p = plannerOpt.createQueryPlan(qry);
+//		execPlan(p);
 	}
 
 	private static void createDatabase() throws Exception {

@@ -35,7 +35,7 @@ public class Main {
 
 		while (true) {
 			try {
-				byte[] recvbuffer = new byte[1024];
+				byte[] recvbuffer = new byte[100000];
 				input.read(recvbuffer);
 //				System.out.println(new String(recvbuffer));
 				exec(new String(recvbuffer));
