@@ -8,12 +8,12 @@ import tinydb.index.Index;
 import tinydb.index.bptree.*;
 import tinydb.index.hash.HashIndex;
 
-public class BTreeIndexInfo implements IndexInfo {
+public class BPTreeIndexInfo implements IndexInfo {
 	private String idxname, fldname;
 	private Table tb;
 	private StatInfo si;
 
-	public BTreeIndexInfo(String idxname, String tblname, String fldname) {
+	public BPTreeIndexInfo(String idxname, String tblname, String fldname) {
 		this.idxname = idxname;
 		this.fldname = fldname;
 		tb = DBManager.metadataManager().getTableInfo(tblname);
@@ -34,7 +34,7 @@ public class BTreeIndexInfo implements IndexInfo {
 		Table idxti = new Table("", schema());
 		int rpb = BLOCK_SIZE / idxti.recordLength();
 		int numblocks = si.recordsOutput() / rpb;
-		// Call BPTreeIndex.searchCost for hash indexing
+		// Call BPTreeIndex.searchCost for indexing
 		return BPTreeIndex.searchCost(numblocks, rpb);
 	}
 

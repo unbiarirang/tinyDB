@@ -30,7 +30,7 @@ public class QueryExamples {
 								  0,	// 7. SHOW DATABASES
 								  0,	// 8. DROP TABLE tblname
 								  0,	// 9. CREATE INDEX
-								  0,	// 10. Index SELECT
+								  1,	// 10. Index SELECT
 								  0,	// 11. Index JOIN
 								  0,	// 12. JOIN & SELECT with tbname.attrname
 								  0,	// 13. Natural JOIN
@@ -41,7 +41,7 @@ public class QueryExamples {
 								  0,	// 18. REVOKE PRIVIEGE
 								  0,	// 19. DELETE
 								  0,	// 20. Error tests
-								  0		// 6.8 test
+								  0		// 21. 6.8 TA TAtest script
 							 };
 
 			if (testcase[0] == 1) select1();
@@ -65,104 +65,13 @@ public class QueryExamples {
 			if (testcase[18] == 1) revokePrivilege();
 			if (testcase[19] == 1) delete();
 			if (testcase[20] == 1) errorTests();
-			if (testcase[21] == 1) test();
+			if (testcase[21] == 1) TAtest();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private static void test() throws Exception {
-		String qry0 = "drop table student;";
-		plannerOpt.executeUpdate(qry0);;
-		String qry1 = "CREATE TABLE classroom\n" + 
-				"	(id				INT NOT NULL,\n" + 
-				"	 name			String(32) NOT NULL,\n" + 
-				"	 length         FLOAT,\n" + 
-				"	 height         FLOAT,\n" + 
-				"     width          DOUBLE,\n" + 
-				"	 PRIMARY KEY(id)\n" + 
-				"	);";
-		String qry2 = "DROP TABLE classroom;";
-		String qry3 = "CREATE TABLE student\n" + 
-				"	(id				INT NOT NULL, \n" + 
-				"	 name			String(32) NOT NULL, \n" + 
-				"	 dept_name		String(32), \n" + 
-				"	 height         FLOAT,\n" + 
-				"	 weight         DOUBLE,\n" + 
-				"	 PRIMARY KEY (id) );";
-		plannerOpt.executeUpdate(qry1);
-		plannerOpt.executeUpdate(qry2);
-		plannerOpt.executeUpdate(qry3);
-		
-		String qry4 ="INSERT INTO student VALUES(0,'0','History',167.1,42.9);";
-		String qry5 = "INSERT INTO student VALUES(1,'1','Geology',171.7,46.7);";
-		String qry6 = "INSERT INTO student VALUES(2,'2','Physics',188.7,78.4);";
-		String qry7 = "INSERT INTO student VALUES(3,'3','English',197.4,43.4);";
-		String qry8 = "INSERT INTO student VALUES(4,'4','History',180.9,80.9);";
-		String qry9 = "INSERT INTO student VALUES(5,'5','English',166.9,80.4);"; 
-		String qry9_1 = "INSERT INTO student VALUES(498,'498','Physics',156.9,86.1);";
-		String qry10 = "INSERT INTO student VALUES(499,'499','History',175.0,67.9);";	
-		plannerOpt.executeUpdate(qry4);
-		plannerOpt.executeUpdate(qry5);
-		plannerOpt.executeUpdate(qry6);
-		plannerOpt.executeUpdate(qry7);
-		plannerOpt.executeUpdate(qry8);
-		plannerOpt.executeUpdate(qry9);
-		plannerOpt.executeUpdate(qry9_1);
-		plannerOpt.executeUpdate(qry10);
-		
-		String qry11 = "DELETE FROM student WHERE name = '499';";
-		String qry12 = "UPDATE student SET height = 250.0 WHERE id = 498;";
-		plannerOpt.executeUpdate(qry11);
-		plannerOpt.executeUpdate(qry12);
-		
-		String qry = "select * from student";
-		p = plannerOpt.createQueryPlan(qry);
-		execPlan(p);
-		
-		String qry12_1 = "DROP TABLE department;";
-		plannerOpt.executeUpdate(qry12_1);
-		String qry13 = "CREATE TABLE department" + 
-				"	(dept_name		String(32)," + 
-				"	 building		String(15)," + 
-				"	 budget		    LONG,\n" + 
-				"	 PRIMARY KEY (dept_name)\n" + 
-				"	);";
-		String qry14 = "INSERT INTO department VALUES('Biology','Candlestick',647610);"; 
-		String qry15 = "INSERT INTO department VALUES('History','Taylor',699140);";
-		String qry16 = "INSERT INTO department VALUES('Physics','Wrigley',942162);"; 
-		String qry17 = "INSERT INTO department VALUES('English','Palmer',611042);";
-		String qry18 = "INSERT INTO department VALUES('Finance','Candlestick',866831);";
-		String qry19 = "INSERT INTO department VALUES('Geology','Palmer',406557);";
-		plannerOpt.executeUpdate(qry13);
-		plannerOpt.executeUpdate(qry14);
-		plannerOpt.executeUpdate(qry15);
-		plannerOpt.executeUpdate(qry16);
-		plannerOpt.executeUpdate(qry17);
-		plannerOpt.executeUpdate(qry18);
-		plannerOpt.executeUpdate(qry19);
-		
-		String qry20 = "SHOW TABLE department;";
-		System.out.println(plannerOpt.executeShow(qry20));
-		
-		String qry21_1 = "SELECT * from department";
-		p = plannerOpt.createQueryPlan(qry21_1);
-		execPlan(p);
-//		
-//		qry21_1 = "SELECT * from student, department";
-//		p = plannerOpt.createQueryPlan(qry21_1);
-//		execPlan(p);
-
-		String qry21 = "SELECT student.name, student.dept_name, department.budget FROM student JOIN department ON student.dept_name = department.dept_name WHERE student.height > 180.0;";
-		p = plannerOpt.createQueryPlan(qry21);
-		execPlan(p);
-		
-		String qry22 = "SELECT * FROM student;";
-
-		String qry23 = "SELECT id, name FROM student WHERE id = 250;";
-
-	}
 
 	private static void select1() throws Exception {
 		String qry0_1 = "drop table test";
@@ -526,6 +435,98 @@ public class QueryExamples {
 		String tableNotExists2 = "select a from NOTTEST;";
 		p = plannerOpt.createQueryPlan(tableNotExists2);
 		execPlan(p);
+	}
+
+	// 6.8 TA test script
+	private static void TAtest() throws Exception {
+		String qry0 = "drop table student;";
+		plannerOpt.executeUpdate(qry0);;
+		String qry1 = "CREATE TABLE classroom\n" + 
+				"	(id				INT NOT NULL,\n" + 
+				"	 name			String(32) NOT NULL,\n" + 
+				"	 length         FLOAT,\n" + 
+				"	 height         FLOAT,\n" + 
+				"     width          DOUBLE,\n" + 
+				"	 PRIMARY KEY(id)\n" + 
+				"	);";
+		String qry2 = "DROP TABLE classroom;";
+		String qry3 = "CREATE TABLE student\n" + 
+				"	(id				INT NOT NULL, \n" + 
+				"	 name			String(32) NOT NULL, \n" + 
+				"	 dept_name		String(32), \n" + 
+				"	 height         FLOAT,\n" + 
+				"	 weight         DOUBLE,\n" + 
+				"	 PRIMARY KEY (id) );";
+		plannerOpt.executeUpdate(qry1);
+		plannerOpt.executeUpdate(qry2);
+		plannerOpt.executeUpdate(qry3);
+		
+		String qry4 ="INSERT INTO student VALUES(0,'0','History',167.1,42.9);";
+		String qry5 = "INSERT INTO student VALUES(1,'1','Geology',171.7,46.7);";
+		String qry6 = "INSERT INTO student VALUES(2,'2','Physics',188.7,78.4);";
+		String qry7 = "INSERT INTO student VALUES(3,'3','English',197.4,43.4);";
+		String qry8 = "INSERT INTO student VALUES(4,'4','History',180.9,80.9);";
+		String qry9 = "INSERT INTO student VALUES(5,'5','English',166.9,80.4);"; 
+		String qry9_1 = "INSERT INTO student VALUES(498,'498','Physics',156.9,86.1);";
+		String qry10 = "INSERT INTO student VALUES(499,'499','History',175.0,67.9);";	
+		plannerOpt.executeUpdate(qry4);
+		plannerOpt.executeUpdate(qry5);
+		plannerOpt.executeUpdate(qry6);
+		plannerOpt.executeUpdate(qry7);
+		plannerOpt.executeUpdate(qry8);
+		plannerOpt.executeUpdate(qry9);
+		plannerOpt.executeUpdate(qry9_1);
+		plannerOpt.executeUpdate(qry10);
+		
+		String qry11 = "DELETE FROM student WHERE name = '499';";
+		String qry12 = "UPDATE student SET height = 250.0 WHERE id = 498;";
+		plannerOpt.executeUpdate(qry11);
+		plannerOpt.executeUpdate(qry12);
+		
+		String qry = "select * from student";
+		p = plannerOpt.createQueryPlan(qry);
+		execPlan(p);
+		
+		String qry12_1 = "DROP TABLE department;";
+		plannerOpt.executeUpdate(qry12_1);
+		String qry13 = "CREATE TABLE department" + 
+				"	(dept_name		String(32)," + 
+				"	 building		String(15)," + 
+				"	 budget		    LONG,\n" + 
+				"	 PRIMARY KEY (dept_name)\n" + 
+				"	);";
+		String qry14 = "INSERT INTO department VALUES('Biology','Candlestick',647610);"; 
+		String qry15 = "INSERT INTO department VALUES('History','Taylor',699140);";
+		String qry16 = "INSERT INTO department VALUES('Physics','Wrigley',942162);"; 
+		String qry17 = "INSERT INTO department VALUES('English','Palmer',611042);";
+		String qry18 = "INSERT INTO department VALUES('Finance','Candlestick',866831);";
+		String qry19 = "INSERT INTO department VALUES('Geology','Palmer',406557);";
+		plannerOpt.executeUpdate(qry13);
+		plannerOpt.executeUpdate(qry14);
+		plannerOpt.executeUpdate(qry15);
+		plannerOpt.executeUpdate(qry16);
+		plannerOpt.executeUpdate(qry17);
+		plannerOpt.executeUpdate(qry18);
+		plannerOpt.executeUpdate(qry19);
+		
+		String qry20 = "SHOW TABLE department;";
+		System.out.println(plannerOpt.executeShow(qry20));
+		
+		String qry21_1 = "SELECT * from department";
+		p = plannerOpt.createQueryPlan(qry21_1);
+		execPlan(p);
+//		
+//		qry21_1 = "SELECT * from student, department";
+//		p = plannerOpt.createQueryPlan(qry21_1);
+//		execPlan(p);
+
+		String qry21 = "SELECT student.name, student.dept_name, department.budget FROM student JOIN department ON student.dept_name = department.dept_name WHERE student.height > 180.0;";
+		p = plannerOpt.createQueryPlan(qry21);
+		execPlan(p);
+		
+		String qry22 = "SELECT * FROM student;";
+
+		String qry23 = "SELECT id, name FROM student WHERE id = 250;";
 	}
 
 	private static void execPlan(Plan p) throws Exception {
