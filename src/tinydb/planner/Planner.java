@@ -46,7 +46,7 @@ public class Planner implements PlannerBase {
 	}
 
 	public Plan createPlan(QueryData data) {
-		// Step 1: Create a plan for each mentioned table or view
+		// Step 1: Create a table plan for each mentioned table
 		List<Plan> plans = new ArrayList<Plan>();
 		List<String> fields = data.isAll() ? new ArrayList<String>() : data.fields();
 
@@ -84,7 +84,7 @@ public class Planner implements PlannerBase {
 		for (Plan nextplan : plans)
 			p = new ProductPlan(p, nextplan);
 
-		// Step 3: Add a selection plan for the predicate
+		// Step 3: Create a selection plan and add the query condition
 		p = new SelectPlan(p, data.cond(), data.lhstables(), fields);
 
 		// Step 4: Project on the field names

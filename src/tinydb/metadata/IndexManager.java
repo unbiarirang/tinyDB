@@ -41,7 +41,7 @@ public class IndexManager {
 				String idxname = rm.getString("indexname");
 				String fldname = rm.getString("fieldname");
 //				IndexInfo ii = new HashIndexInfo(idxname, tblname, fldname);
-				IndexInfo ii = new BTreeIndexInfo(idxname, tblname, fldname);
+				IndexInfo ii = new BPTreeIndexInfo(idxname, tblname, fldname);
 				result.put(fldname, ii);
 			}
 		rm.close();
